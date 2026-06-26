@@ -9,5 +9,8 @@ debug_*.html
 debug_*.json
 debug_*.txt
 
+# Generated cache
+index_cache.json
+
 # macOS
 .DS_Store
