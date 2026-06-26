@@ -74,6 +74,10 @@ LAUNCHER
         rm -rf "$TMP"
     fi
 
+    # Register so Finder shows the icon immediately
+    touch "$APP"
+    /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "$APP" 2>/dev/null
+
     echo "→ Created Rekordbox-Bandcamp.app"
     echo "  Drag it to your Applications folder or Dock to use it anytime."
     echo ""
