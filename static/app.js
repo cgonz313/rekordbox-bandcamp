@@ -344,6 +344,12 @@ exportBtn.addEventListener('click', () => {
   send({ action: 'export', playlists: selected });
 });
 
+$('stop-btn').addEventListener('click', async () => {
+  if (!confirm('Stop the server?')) return;
+  await fetch('/shutdown', { method: 'POST' }).catch(() => {});
+  document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:system-ui;color:#666;font-size:14px">Server stopped. You can close this tab.</div>';
+});
+
 unmatchedToggle.addEventListener('click', () => {
   const visible = unmatchedList.style.display === 'block';
   unmatchedList.style.display = visible ? 'none' : 'block';

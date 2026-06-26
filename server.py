@@ -12,7 +12,7 @@ from xml.etree.ElementTree import ElementTree
 from xml.etree.ElementTree import indent as xml_indent
 
 import uvicorn
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import BackgroundTasks, FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from playwright.async_api import async_playwright, Browser, Page
@@ -102,6 +102,27 @@ async def browse(path: str = ""):
 
     parent = str(p.parent) if p.parent != p else None
     return {"path": str(p), "parent": parent, "entries": entries}
+
+
+@app.post("/shutdown")
+async def shutdown(background_tasks: BackgroundTasks):
+    async def _stop():
+        await asyncio.sleep(0.3)  # let the response reach the client first
+        if state.browser:
+            try:
+                await state.browser.close()
+            except Exception:
+                pass
+        if state.pw:
+            try:
+                await state.pw.stop()
+            except Exception:
+                pass
+        import os, signal
+        os.kill(os.getpid(), signal.SIGTERM)
+
+    background_tasks.add_task(_stop)
+    return {"ok": True}
 
 
 @app.get("/download/{filename:path}")
