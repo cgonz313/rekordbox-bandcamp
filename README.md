@@ -21,12 +21,16 @@ Converts your private Bandcamp playlists into a Rekordbox XML file, matched agai
 
 ## Setup
 
-Run once to install dependencies and download the browser:
+**First time only** — double-click the setup script for your platform:
 
-```bash
-pip3 install -r requirements.txt
-python3 -m playwright install chromium
-```
+- **macOS**: double-click `setup.command` (or right-click → Open if macOS blocks it)
+- **Windows**: double-click `setup.bat`
+
+This installs all dependencies and downloads the Chromium browser automatically.
+
+> **Prerequisite**: Python 3.9+ must be installed first.
+> Download from [python.org](https://www.python.org/downloads/).
+> On Windows, check **"Add Python to PATH"** during installation.
 
 ---
 
@@ -64,7 +68,7 @@ python3 main.py
 3. The playlists appear in the left sidebar under **rekordbox xml**
 4. Drag playlists into your main library
 
-> **Note:** Rekordbox on macOS requires the drive to be mounted when importing. Make sure `/Volumes/GONZTRACKS/` is connected.
+> **Note:** Rekordbox on macOS requires the drive to be mounted when importing. Make sure your music drive is connected before importing.
 
 ---
 
@@ -88,6 +92,10 @@ Re-click "Connect Bandcamp". You have 3 minutes to log in before it times out.
 
 ```
 rekordbox-bandcamp/
+├── setup.command      # One-time setup (macOS)
+├── setup.bat          # One-time setup (Windows)
+├── start.command      # Launch app (macOS)
+├── start.bat          # Launch app (Windows)
 ├── server.py          # Web server (FastAPI + WebSocket)
 ├── main.py            # CLI version + shared scraping/matching logic
 ├── static/
