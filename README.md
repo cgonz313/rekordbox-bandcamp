@@ -21,12 +21,16 @@ Converts your private Bandcamp playlists into a Rekordbox XML file, matched agai
 
 ## Setup
 
-Run once to install dependencies and download the browser:
+**First time only** — double-click the setup script for your platform:
 
-```bash
-pip3 install -r requirements.txt
-python3 -m playwright install chromium
-```
+- **macOS**: double-click `setup.command` (or right-click → Open if macOS blocks it)
+- **Windows**: double-click `setup.bat`
+
+This installs all dependencies and downloads the Chromium browser automatically. You only need to run it once.
+
+> **Prerequisite**: Python 3.9+ must be installed first.
+> Download from [python.org](https://www.python.org/downloads/).
+> On Windows, check **"Add Python to PATH"** during installation.
 
 ---
 

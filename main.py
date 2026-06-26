@@ -15,7 +15,7 @@ from __future__ import annotations
 import asyncio
 import sys
 from pathlib import Path
-from urllib.parse import quote
+from urllib.parse import quote, urlparse, parse_qs, urlencode
 from xml.etree.ElementTree import Element, SubElement, ElementTree, indent
 
 import mutagen
@@ -24,7 +24,7 @@ from playwright.async_api import async_playwright, Page, Response
 
 # ── Config ────────────────────────────────────────────────────────────────────
 
-MUSIC_DIR      = Path("/Volumes/GONZTRACKS/cuts")
+MUSIC_DIR      = Path.home() / "Music"
 OUTPUT_PATH    = Path("rekordbox_playlists.xml")
 AUDIO_EXTS     = {".mp3", ".aiff", ".aif", ".wav", ".m4a"}
 MATCH_THRESHOLD = 75   # 0–100; lower = more permissive
@@ -144,6 +144,12 @@ async def wait_for_login(page: Page) -> str:
     return username
 
 
+def _find_cursor(data: dict) -> str | None:
+    """Extract the pagination cursor from any Bandcamp API response shape."""
+    return (data.get("last_token") or data.get("nextCursor") or
+            data.get("next_cursor") or data.get("cursor") or None)
+
+
 async def _find_playlist_stubs(page: Page, username: str) -> list[dict]:
     """
     Return [{name, url}] for every playlist on the /playlists page.
@@ -168,13 +174,61 @@ async def _find_playlist_stubs(page: Page, username: str) -> list[dict]:
     page.on("response", on_response)
     await page.goto(playlists_url)
     await page.wait_for_load_state("networkidle")
-    for _ in range(4):
-        await page.keyboard.press("End")
-        await page.wait_for_timeout(600)
-    await page.wait_for_load_state("networkidle")
+
+    # Phase 1: click "View more results" button until it disappears
+    while True:
+        btn = await page.query_selector("button.load-more-button")
+        if not btn:
+            break
+        try:
+            await btn.scroll_into_view_if_needed()
+            await btn.click()
+            await page.wait_for_load_state("networkidle")
+            await page.wait_for_timeout(500)
+        except Exception:
+            break
+
+    # Phase 2: infinite scroll for the remainder
+    prev_count = 0
+    for _ in range(50):
+        await page.mouse.wheel(0, 3000)
+        await page.wait_for_timeout(800)
+        if len(captured) == prev_count:
+            break
+        prev_count = len(captured)
+
     page.remove_listener("response", on_response)
 
-    # 1) Parse responses the page already made while loading (paginated — merge all)
+    # Cursor-based pagination: use the cursor from the first API response
+    # to explicitly fetch all remaining pages via Playwright's request context
+    # (which carries the browser's session cookies)
+    playlist_api = next(
+        (item for item in captured
+         if "fan_collection" in item["url"] and "playlist" in item["url"]),
+        None,
+    )
+    if playlist_api:
+        parsed    = urlparse(playlist_api["url"])
+        base_url  = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
+        base_params = {k: v[0] for k, v in parse_qs(parsed.query).items()}
+
+        cursor = _find_cursor(playlist_api["data"])
+        while cursor:
+            next_url = base_url + "?" + urlencode({**base_params, "older_than_token": cursor})
+            try:
+                resp = await page.request.get(next_url, headers={
+                    "X-Requested-With": "XMLHttpRequest",
+                    "Referer": playlists_url,
+                })
+                if not resp.ok:
+                    break
+                next_data = await resp.json()
+                captured.append({"url": next_url, "data": next_data})
+                cursor = _find_cursor(next_data)
+            except Exception:
+                break
+
+    # 1) Parse all captured responses (initial + paginated)
     all_stubs: list[dict] = []
     seen_urls: set[str] = set()
     for item in captured:
@@ -446,10 +500,15 @@ async def _fetch_playlist_tracks(page: Page, stubs: list[dict]) -> list[dict]:
         page.on("response", on_resp)
         await page.goto(url)
         await page.wait_for_load_state("networkidle")
-        for _ in range(4):
-            await page.keyboard.press("End")
-            await page.wait_for_timeout(500)
-        await page.wait_for_load_state("networkidle")
+
+        prev_count = 0
+        for _ in range(50):
+            await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+            await page.wait_for_timeout(800)
+            if len(captured) == prev_count:
+                break
+            prev_count = len(captured)
+
         page.remove_listener("response", on_resp)
 
         # Try API responses first

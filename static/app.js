@@ -1,129 +1,67 @@
 /* bandcamp → rekordbox  |  client-side logic */
 
-let ws;
-
 // ── DOM refs ──────────────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
 
-const indexBtn          = $('index-btn');
-const indexStatus       = $('index-status');
-const indexProgress     = $('index-progress');
-const indexFill         = $('index-fill');
-const indexLabel        = $('index-label');
-const musicDirInput     = $('music-dir-input');
-const dirBrowseBtn      = $('dir-browse-btn');
-const dirSaveBtn        = $('dir-save-btn');
-const exportDirInput    = $('export-dir-input');
-const exportDirBrowse   = $('export-dir-browse-btn');
-const exportDirSave     = $('export-dir-save-btn');
+const indexBtn        = $('index-btn');
+const indexStatus     = $('index-status');
+const indexProgress   = $('index-progress');
+const indexFill       = $('index-fill');
+const indexLabel      = $('index-label');
+const musicDirInput   = $('music-dir-input');
+const dirBrowseBtn    = $('dir-browse-btn');
+const dirSaveBtn      = $('dir-save-btn');
 
-// ── Folder browser ────────────────────────────────────────────────────────────
-const browseModal    = $('browse-modal');
-const browsePath     = $('browse-path');
-const browseList     = $('browse-list');
-const browseSelect   = $('browse-select');
-const browseCancel   = $('browse-cancel');
-const browseClose    = $('browse-close');
+const loginBtn        = $('login-btn');
+const loginStatus     = $('login-status');
 
-let currentBrowsePath = '';
-let browseTarget = null; // { input, action }
+const playlistsCard   = $('playlists-card');
+const playlistList    = $('playlist-list');
+const selectAllRow    = $('select-all-row');
+const selectAllChk    = $('select-all-chk');
+const exportDirInput  = $('export-dir-input');
+const exportDirBrowse = $('export-dir-browse-btn');
+const exportDirSave   = $('export-dir-save-btn');
+const exportBtn       = $('export-btn');
 
-async function browseDir(path) {
-  const params = path ? `?path=${encodeURIComponent(path)}` : '';
-  const res = await fetch(`/browse${params}`);
-  const data = await res.json();
-  if (data.error) { setStatus(data.error, true); return; }
+const matchProgress   = $('match-progress');
+const matchFill       = $('match-fill');
+const matchLabel      = $('match-label');
 
-  currentBrowsePath = data.path || '';
-  browsePath.textContent = currentBrowsePath || 'Drives';
-  browseSelect.disabled = !currentBrowsePath;
-  browseList.innerHTML = '';
-
-  if (data.parent !== undefined && data.parent !== null) {
-    const up = document.createElement('div');
-    up.className = 'dir-entry dir-up';
-    up.innerHTML = `<span class="dir-icon">↑</span><span>Parent folder</span>`;
-    up.addEventListener('click', () => browseDir(data.parent));
-    browseList.appendChild(up);
-  }
-
-  for (const entry of data.entries) {
-    const row = document.createElement('div');
-    row.className = 'dir-entry';
-    row.innerHTML = `<span class="dir-icon">▶</span><span>${escHtml(entry.name)}</span>`;
-    row.addEventListener('click', () => browseDir(entry.path));
-    browseList.appendChild(row);
-  }
-
-  if (data.entries.length === 0 && !data.parent) {
-    browseList.innerHTML = `<div style="padding:16px 20px;color:var(--muted);font-size:13px">No subfolders found</div>`;
-  }
-}
-
-function openBrowser(targetInput, wsAction) {
-  browseTarget = { input: targetInput, action: wsAction };
-  browseModal.classList.remove('hidden');
-  browseDir(targetInput.value.trim() || '');
-}
-
-function closeBrowser() {
-  browseModal.classList.add('hidden');
-  browseTarget = null;
-}
-
-dirBrowseBtn.addEventListener('click',       () => openBrowser(musicDirInput,  'set_music_dir'));
-exportDirBrowse.addEventListener('click',    () => openBrowser(exportDirInput, 'set_export_dir'));
-browseClose.addEventListener('click',  closeBrowser);
-browseCancel.addEventListener('click', closeBrowser);
-browseModal.addEventListener('click', e => {
-  if (e.target === browseModal) closeBrowser();
-});
-
-browseSelect.addEventListener('click', () => {
-  if (currentBrowsePath && browseTarget) {
-    browseTarget.input.value = currentBrowsePath;
-    send({ action: browseTarget.action, path: currentBrowsePath });
-    closeBrowser();
-  }
-});
-
-const loginBtn       = $('login-btn');
-const loginStatus    = $('login-status');
-
-const playlistsCard  = $('playlists-card');
-const playlistList   = $('playlist-list');
-const selectAllRow   = $('select-all-row');
-const selectAllChk   = $('select-all-chk');
-const exportBtn      = $('export-btn');
-
-const matchProgress  = $('match-progress');
-const matchFill      = $('match-fill');
-const matchLabel     = $('match-label');
-
-const results        = $('results');
-const statMatched    = $('stat-matched');
-const statTotal      = $('stat-total');
-const statUnmatched  = $('stat-unmatched');
-const downloadLink   = $('download-link');
+const results         = $('results');
+const statMatched     = $('stat-matched');
+const statTotal       = $('stat-total');
+const statUnmatched   = $('stat-unmatched');
+const downloadLink    = $('download-link');
 const unmatchedToggle = $('unmatched-toggle');
-const unmatchedList  = $('unmatched-list');
+const unmatchedList   = $('unmatched-list');
+const statusbar       = $('statusbar');
 
-const statusbar      = $('statusbar');
+const browseModal     = $('browse-modal');
+const browsePath      = $('browse-path');
+const browseList      = $('browse-list');
+const browseSelect    = $('browse-select');
+const browseCancel    = $('browse-cancel');
+const browseClose     = $('browse-close');
 
 // ── WebSocket ─────────────────────────────────────────────────────────────────
+let ws;
+let _retryDelay = 500;
+
 function connect() {
   ws = new WebSocket(`ws://${location.host}/ws`);
 
-  ws.onopen = () => setStatus('Connected');
-
-  ws.onmessage = e => {
-    const msg = JSON.parse(e.data);
-    handle(msg);
+  ws.onopen = () => {
+    _retryDelay = 500;
+    setStatus('Connected');
   };
 
+  ws.onmessage = e => handle(JSON.parse(e.data));
+
   ws.onclose = () => {
-    setStatus('Disconnected — retrying…', true);
-    setTimeout(connect, 2000);
+    setStatus('Connecting…', false);
+    setTimeout(connect, _retryDelay);
+    _retryDelay = Math.min(_retryDelay * 2, 5000); // back off up to 5s
   };
 }
 
@@ -135,37 +73,42 @@ function send(obj) {
 function handle(msg) {
   switch (msg.type) {
 
-    case 'init':
-      if (msg.music_dir)   musicDirInput.value = msg.music_dir;
-      if (msg.export_dir)  exportDirInput.value = msg.export_dir;
-      if (msg.indexed > 0) setIndexDone(msg.indexed);
-      if (msg.username)    setLoggedIn(msg.username);
+    case 'init': {
+      if (msg.music_dir)        musicDirInput.value = msg.music_dir;
+      if (msg.export_dir)       exportDirInput.value = msg.export_dir;
+      if (msg.indexed > 0)      setIndexDone(msg.indexed);
+      if (msg.username)         setLoggedIn(msg.username);
       if (msg.playlists?.length) renderPlaylists(msg.playlists);
-      if (msg.last_export) showDownload(msg.last_export);
+      if (msg.last_export)      showDownload(msg.last_export);
       break;
+    }
 
-    case 'music_dir_set':
+    case 'music_dir_set': {
       musicDirInput.value = msg.path;
       indexStatus.textContent = '';
-      setStatus(`Music directory set — click Index Library to scan`);
+      setStatus('Music directory set — click Index Library to scan');
       break;
+    }
 
-    case 'export_dir_set':
+    case 'export_dir_set': {
       exportDirInput.value = msg.path;
       setStatus(`Export directory set to ${msg.path}`);
       break;
+    }
 
-    case 'index_start':
+    case 'index_start': {
       indexBtn.disabled = true;
       indexProgress.classList.remove('hidden');
       setStatus(`Indexing ${msg.total.toLocaleString()} files…`);
       break;
+    }
 
-    case 'index_progress':
+    case 'index_progress': {
       const pct = Math.round((msg.current / msg.total) * 100);
       indexFill.style.width = pct + '%';
       indexLabel.textContent = `${msg.current.toLocaleString()} / ${msg.total.toLocaleString()} files`;
       break;
+    }
 
     case 'index_done':
       setIndexDone(msg.count);
@@ -191,23 +134,24 @@ function handle(msg) {
       setStatus(msg.message);
       break;
 
-    case 'match_progress':
+    case 'match_progress': {
+      const pct = Math.round((msg.current / msg.total) * 100);
       matchProgress.classList.remove('hidden');
-      const mpct = Math.round((msg.current / msg.total) * 100);
-      matchFill.style.width = mpct + '%';
-      matchLabel.textContent =
-        `${msg.playlist} — ${msg.matched}/${msg.current} matched (${msg.current}/${msg.total})`;
+      matchFill.style.width = pct + '%';
+      matchLabel.textContent = `${msg.playlist} — ${msg.matched}/${msg.current} matched (${msg.current}/${msg.total})`;
       break;
+    }
 
     case 'export_done':
       matchProgress.classList.add('hidden');
       showExportResults(msg);
       break;
 
-    case 'need_username':
-      const u = prompt("Could not detect your Bandcamp username automatically.\nEnter your Bandcamp username (e.g. cgonz313):");
+    case 'need_username': {
+      const u = prompt('Could not detect your Bandcamp username automatically.\nEnter your Bandcamp username (e.g. cgonz313):');
       if (u) send({ action: 'set_username', username: u.trim() });
       break;
+    }
 
     case 'error':
       setStatus(msg.message, true);
@@ -240,6 +184,7 @@ function setLoggedIn(username) {
 
 function renderPlaylists(items) {
   playlistsCard.classList.remove('hidden');
+  selectAllRow.classList.remove('hidden');
   playlistList.innerHTML = '';
 
   items.forEach(pl => {
@@ -253,38 +198,22 @@ function renderPlaylists(items) {
     playlistList.appendChild(row);
   });
 
-  updateSelectAll();
-  playlistList.querySelectorAll('input').forEach(cb =>
-    cb.addEventListener('change', updateExportBtn)
-  );
+  playlistList.querySelectorAll('input').forEach(cb => cb.addEventListener('change', updateExportBtn));
   updateExportBtn();
-}
-
-function updateSelectAll() {
-  selectAllRow.classList.remove('hidden');
-  selectAllChk.addEventListener('change', () => {
-    playlistList.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-      cb.checked = selectAllChk.checked;
-    });
-    updateExportBtn();
-  });
 }
 
 function updateExportBtn() {
   const checked = playlistList.querySelectorAll('input:checked').length;
   exportBtn.disabled = checked === 0;
-  exportBtn.textContent = checked > 0
-    ? `Export ${checked} playlist${checked > 1 ? 's' : ''}`
-    : 'Export';
+  exportBtn.textContent = checked > 0 ? `Export ${checked} playlist${checked > 1 ? 's' : ''}` : 'Export';
 }
 
 function showExportResults(msg) {
-  results.style.display = 'block';
-  statMatched.textContent  = msg.matched;
-  statTotal.textContent    = msg.total;
+  statMatched.textContent   = msg.matched;
+  statTotal.textContent     = msg.total;
   statUnmatched.textContent = msg.unmatched.length;
+  results.style.display = 'block';
   showDownload(msg.filename);
-
   if (msg.unmatched.length > 0) {
     unmatchedToggle.classList.remove('hidden');
     unmatchedList.innerHTML = msg.unmatched.map(escHtml).join('<br>');
@@ -301,31 +230,87 @@ function showDownload(filename) {
 }
 
 function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-// ── Button handlers ───────────────────────────────────────────────────────────
-dirSaveBtn.addEventListener('click', () => {
-  const path = musicDirInput.value.trim();
-  if (path) send({ action: 'set_music_dir', path });
-});
+// ── Folder browser ────────────────────────────────────────────────────────────
+let currentBrowsePath = '';
+let browseTarget = null; // { input, action }
 
-musicDirInput.addEventListener('keydown', e => {
-  if (e.key === 'Enter') dirSaveBtn.click();
-});
+async function browseDir(path) {
+  const params = path ? `?path=${encodeURIComponent(path)}` : '';
+  const data = await fetch(`/browse${params}`).then(r => r.json());
+  if (data.error) { setStatus(data.error, true); return; }
 
-exportDirSave.addEventListener('click', () => {
-  const path = exportDirInput.value.trim();
-  if (path) send({ action: 'set_export_dir', path });
-});
+  currentBrowsePath = data.path || '';
+  browsePath.textContent = currentBrowsePath || 'Drives';
+  browseSelect.disabled = !currentBrowsePath;
+  browseList.innerHTML = '';
 
-exportDirInput.addEventListener('keydown', e => {
-  if (e.key === 'Enter') exportDirSave.click();
-});
+  if (data.parent != null) {
+    const up = document.createElement('div');
+    up.className = 'dir-entry dir-up';
+    up.innerHTML = `<span class="dir-icon">↑</span><span>Parent folder</span>`;
+    up.addEventListener('click', () => browseDir(data.parent));
+    browseList.appendChild(up);
+  }
 
-indexBtn.addEventListener('click', () => send({ action: 'index' }));
+  for (const entry of data.entries) {
+    const row = document.createElement('div');
+    row.className = 'dir-entry';
+    row.innerHTML = `<span class="dir-icon">▶</span><span>${escHtml(entry.name)}</span>`;
+    row.addEventListener('click', () => browseDir(entry.path));
+    browseList.appendChild(row);
+  }
 
+  if (!data.entries.length && data.parent == null) {
+    browseList.innerHTML = `<div style="padding:16px 20px;color:var(--muted);font-size:13px">No subfolders found</div>`;
+  }
+}
+
+function openBrowser(targetInput, action) {
+  browseTarget = { input: targetInput, action };
+  browseModal.classList.remove('hidden');
+  browseDir(targetInput.value.trim());
+}
+
+function closeBrowser() {
+  browseModal.classList.add('hidden');
+  browseTarget = null;
+}
+
+// ── Event listeners ───────────────────────────────────────────────────────────
+function bindDirInput(input, saveBtn, action) {
+  saveBtn.addEventListener('click', () => {
+    const path = input.value.trim();
+    if (path) send({ action, path });
+  });
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') saveBtn.click(); });
+}
+
+bindDirInput(musicDirInput,  dirSaveBtn,    'set_music_dir');
+bindDirInput(exportDirInput, exportDirSave, 'set_export_dir');
+
+indexBtn.addEventListener('click', () => send({ action: 'index', path: musicDirInput.value.trim() }));
 loginBtn.addEventListener('click', () => send({ action: 'login' }));
+
+dirBrowseBtn.addEventListener('click',    () => openBrowser(musicDirInput,  'set_music_dir'));
+exportDirBrowse.addEventListener('click', () => openBrowser(exportDirInput, 'set_export_dir'));
+browseClose.addEventListener('click',  closeBrowser);
+browseCancel.addEventListener('click', closeBrowser);
+browseModal.addEventListener('click',  e => { if (e.target === browseModal) closeBrowser(); });
+browseSelect.addEventListener('click', () => {
+  if (currentBrowsePath && browseTarget) {
+    browseTarget.input.value = currentBrowsePath;
+    send({ action: browseTarget.action, path: currentBrowsePath });
+    closeBrowser();
+  }
+});
+
+selectAllChk.addEventListener('change', () => {
+  playlistList.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = selectAllChk.checked; });
+  updateExportBtn();
+});
 
 exportBtn.addEventListener('click', () => {
   const selected = [...playlistList.querySelectorAll('input:checked')].map(cb => ({
