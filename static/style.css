@@ -26,7 +26,6 @@
 }
 
 [data-theme="light"] .btn-primary { color: #fff; }
-[data-theme="light"] .logo-sep { color: #71717a; }
 
 body {
   background: var(--bg);
@@ -69,27 +68,45 @@ header {
 .theme-toggle:hover { opacity: 0.85; }
 
 .logo-row {
-  display: flex;
-  align-items: center;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: auto auto auto;
+  align-items: end;
+  justify-content: center;
+  gap: 35px;
 }
 
-.logo-bc, 
+.logo-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-bc,
 .logo-rb {
   height: 100px;
   width: auto;
 }
 
-.logo-sep {
-  font-size: 28px;
+.brand-name {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--text);
+}
+
+.logo-arrow {
+  font-size: 20px;
   font-weight: 300;
-  color: var(--border);
+  color: var(--muted);
+  padding-bottom: 2px;
 }
 
 .site-sub {
   font-size: 12px;
   color: var(--muted);
   letter-spacing: 0.4px;
+  margin-top: 14px;
 }
 
 main {

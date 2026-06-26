@@ -15,38 +15,166 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 40px 24px;
     }
 
     .wrap {
-      text-align: center;
-      padding: 40px 24px;
-      max-width: 480px;
+      max-width: 880px;
       width: 100%;
     }
 
-    .title {
-      font-size: 22px;
-      font-weight: 700;
-      letter-spacing: -0.3px;
-      margin-bottom: 6px;
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
     }
 
-    .title span { color: #00c8a0; }
+    .logo-row {
+      display: grid;
+      grid-template-columns: auto auto auto;
+      align-items: end;
+      justify-content: center;
+      gap: 35px;
+    }
+
+    .logo-unit {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo { height: 80px; width: auto; }
+
+    .brand-name {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+      color: #e0e0e0;
+    }
+
+    .logo-arrow {
+      font-size: 20px;
+      font-weight: 300;
+      color: #888;
+      padding-bottom: 2px;
+    }
 
     .tagline {
-      font-size: 13px;
+      font-size: 12px;
       color: #c8c8c8;
-      margin-bottom: 40px;
+      margin-top: 14px;
+      margin-bottom: 32px;
     }
 
+    /* Two column layout */
+    .two-col {
+      display: grid;
+      grid-template-columns: 2fr 3fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    @media (max-width: 680px) {
+      .two-col { grid-template-columns: 1fr; }
+    }
+
+    /* Cards */
     .card {
       background: #181818;
       border: 1px solid #2a2a2a;
       border-radius: 10px;
-      padding: 28px 32px;
+      padding: 24px;
       margin-bottom: 16px;
     }
 
+    .card:last-child { margin-bottom: 0; }
+
+    .card-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: #c8c8c8;
+      margin-bottom: 14px;
+    }
+
+    /* About column */
+    .about-desc {
+      font-size: 12px;
+      color: #c8c8c8;
+      line-height: 1.7;
+      margin-bottom: 18px;
+    }
+
+    .how-it-works {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .how-it-works li {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      font-size: 12px;
+      color: #c8c8c8;
+      line-height: 1.5;
+      text-align: left;
+    }
+
+    .step-num {
+      background: #2a2a2a;
+      color: #00c8a0;
+      font-size: 10px;
+      font-weight: 700;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .privacy-note {
+      font-size: 11px;
+      color: #666;
+      line-height: 1.5;
+      border-top: 1px solid #2a2a2a;
+      padding-top: 14px;
+      text-align: left;
+    }
+
+    /* OS toggle */
+    .os-toggle {
+      display: inline-flex;
+      background: #111;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      padding: 3px;
+      margin-bottom: 16px;
+      gap: 2px;
+    }
+
+    .os-btn {
+      background: none;
+      border: none;
+      color: #666;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 5px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .os-btn.active { background: #2a2a2a; color: #e0e0e0; }
+
+    /* Step label */
     .step-label {
       font-size: 11px;
       font-weight: 600;
@@ -56,23 +184,31 @@
       margin-bottom: 14px;
     }
 
-    .file-name {
-      display: inline-block;
-      font-size: 14px;
-      font-family: "SF Mono", "Menlo", monospace;
-      color: #00c8a0;
-      margin-bottom: 12px;
-    }
-
     .hint {
       font-size: 12px;
       color: #c8c8c8;
       line-height: 1.6;
+      text-align: left;
     }
 
+    .warn-box {
+      margin-top: 16px;
+      border-top: 1px solid rgba(245,158,11,0.2);
+      padding-top: 14px;
+    }
+
+    .warn-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #f59e0b;
+      margin-bottom: 6px;
+    }
+
+    /* States */
     .checking {
       font-size: 13px;
       color: #c8c8c8;
+      text-align: center;
       animation: pulse 1.5s ease-in-out infinite;
     }
 
@@ -95,106 +231,204 @@
 
     .open-btn:hover { opacity: 0.85; }
 
-    #state-checking { display: block; }
-    #state-stopped  { display: none;  }
-    #state-running  { display: none;  }
+    #state-checking,
+    #state-stopped,
+    #state-running  { display: none; }
   </style>
 </head>
 <body>
 <div class="wrap">
 
-  <h1 class="title">bandcamp <span>→</span> rekordbox</h1>
-  <p class="tagline">Bandcamp playlist converter for rekordbox</p>
+  <div class="header">
+    <div class="logo-row">
+      <div class="logo-unit">
+        <img src="static/images/bc-logo-512.png" class="logo" alt="Bandcamp">
+        <span class="brand-name">bandcamp</span>
+      </div>
+      <span class="logo-arrow">→</span>
+      <div class="logo-unit">
+        <img src="static/images/rb-logo.png" class="logo" alt="rekordbox">
+        <span class="brand-name">rekordbox</span>
+      </div>
+    </div>
+    <p class="tagline">Bandcamp to rekordbox playlist converter</p>
+  </div>
 
   <div id="state-checking">
-    <p class="checking">Checking…</p>
+    <div class="card" style="text-align:center">
+      <p class="checking">Checking if the app is running…</p>
+    </div>
   </div>
 
   <div id="state-stopped">
-    <div class="card">
-      <div class="step-label">Step 1 — In Finder, double-click this file</div>
 
-      <svg viewBox="0 0 320 215" width="100%" style="max-width:320px;margin:12px auto 16px;display:block;pointer-events:none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <style>
-            .click-ring { animation: ripple 1.8s ease-out infinite; transform-origin: 178px 54px; }
-            .click-ring2 { animation: ripple 1.8s ease-out 0.6s infinite; transform-origin: 178px 54px; }
-            @keyframes ripple {
-              0%   { r: 6; opacity: 0.6; }
-              100% { r: 18; opacity: 0; }
-            }
-          </style>
-        </defs>
-
-        <!-- Window shadow -->
-        <rect x="4" y="4" width="312" height="170" rx="10" fill="rgba(0,0,0,0.35)"/>
-        <!-- Window -->
-        <rect x="0" y="0" width="312" height="170" rx="10" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="1"/>
-        <!-- Title bar -->
-        <rect x="0" y="0" width="312" height="32" rx="10" fill="#2a2a2a"/>
-        <rect x="0" y="22" width="312" height="10" fill="#2a2a2a"/>
-        <!-- Traffic lights -->
-        <circle cx="18" cy="16" r="5" fill="#ff5f57"/>
-        <circle cx="34" cy="16" r="5" fill="#febc2e"/>
-        <circle cx="50" cy="16" r="5" fill="#28c840"/>
-        <!-- Folder name -->
-        <text x="156" y="21" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="11" fill="#c8c8c8" text-anchor="middle">rekordbox-bandcamp</text>
-        <!-- Divider -->
-        <line x1="0" y1="32" x2="312" y2="32" stroke="#3a3a3a" stroke-width="1"/>
-
-        <!-- Launch.command row (subtle, not button-like) -->
-        <rect x="8" y="40" width="296" height="28" rx="4" fill="rgba(0,200,160,0.08)"/>
-        <rect x="16" y="46" width="16" height="16" rx="3" fill="#1a2e28"/>
-        <text x="18" y="58" font-family="monospace" font-size="8" fill="#00c8a0">$_</text>
-        <text x="38" y="59" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" font-weight="600" fill="#e0e0e0">Launch.command</text>
-
-        <!-- Other files -->
-        <rect x="16" y="78" width="16" height="16" rx="3" fill="#252525"/>
-        <text x="19" y="90" font-family="monospace" font-size="9" fill="#444">&lt;/&gt;</text>
-        <text x="38" y="91" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" fill="#4a4a4a">START HERE.html</text>
-
-        <rect x="16" y="106" width="16" height="16" rx="3" fill="#252525"/>
-        <text x="19" y="118" font-family="monospace" font-size="9" fill="#444">#</text>
-        <text x="38" y="118" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" fill="#4a4a4a">README.md</text>
-
-        <rect x="16" y="134" width="16" height="16" rx="3" fill="#252525"/>
-        <text x="19" y="146" font-family="monospace" font-size="9" fill="#444">py</text>
-        <text x="38" y="146" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" fill="#4a4a4a">server.py</text>
-
-        <!-- Click ripple animation on Launch.command -->
-        <circle class="click-ring"  cx="178" cy="54" r="6" fill="none" stroke="#00c8a0" stroke-width="1.5"/>
-        <circle class="click-ring2" cx="178" cy="54" r="6" fill="none" stroke="#00c8a0" stroke-width="1.5"/>
-
-        <!-- macOS cursor over Launch.command -->
-        <g transform="translate(163, 40)">
-          <path d="M 2 2 L 2 17 L 5 13 L 7.5 19 L 9.5 18 L 7 12 L 11 12 Z" fill="rgba(0,0,0,0.4)" transform="translate(1,1)"/>
-          <path d="M 2 2 L 2 17 L 5 13 L 7.5 19 L 9.5 18 L 7 12 L 11 12 Z" fill="white" stroke="#111" stroke-width="0.6" stroke-linejoin="round"/>
-        </g>
-
-        <!-- Annotation arrow + label below window -->
-        <line x1="156" y1="175" x2="156" y2="188" stroke="#444" stroke-width="1" stroke-dasharray="3,2"/>
-        <text x="156" y="200" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="11" fill="#666" text-anchor="middle">Open in Finder and double-click</text>
-        <text x="156" y="213" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="11" fill="#666" text-anchor="middle">— this page redirects automatically</text>
-      </svg>
-
-      <p class="hint">It's in the same folder as this page.<br>First launch installs everything automatically — takes about a minute.</p>
+    <div style="text-align:center;margin-bottom:16px">
+      <div class="os-toggle">
+        <button class="os-btn" id="btn-mac" onclick="setOS('mac')">Mac</button>
+        <button class="os-btn" id="btn-win" onclick="setOS('win')">Windows</button>
+      </div>
     </div>
-    <div class="card" style="border-style:dashed;opacity:0.6">
-      <div class="step-label">Step 2 — Come back here</div>
-      <p class="hint">This page will detect when the app is running and take you there automatically.</p>
+
+    <div class="two-col">
+
+    <!-- Left: About -->
+    <div class="col-about">
+      <div class="card">
+        <div class="card-title">What is this?</div>
+        <p class="about-desc">Converts your private Bandcamp playlists into a rekordbox XML file, matched against your local music library.</p>
+        <ul class="how-it-works">
+          <li><span class="step-num">1</span><span>Opens a browser so you can log into Bandcamp normally</span></li>
+          <li><span class="step-num">2</span><span>Fuzzy-matches each playlist track to your local files using their metadata tags</span></li>
+          <li><span class="step-num">3</span><span>Generates an XML file you import directly into rekordbox</span></li>
+        </ul>
+        <p class="privacy-note">🔒 Your Bandcamp credentials are never stored — the browser session works just like a normal login. Everything runs locally on your machine.</p>
+      </div>
     </div>
-  </div>
+
+    <!-- Right: Setup instructions -->
+    <div class="col-steps">
+
+        <!-- Mac -->
+        <div id="mac-instructions">
+          <div class="card">
+            <div class="step-label">Step 1 — In Finder, double-click this file</div>
+
+            <svg viewBox="0 0 320 215" width="100%" style="max-width:320px;margin:12px auto 16px;display:block;pointer-events:none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <style>
+                  .cr1 { animation: rp 1.8s ease-out infinite; transform-origin: 178px 54px; }
+                  .cr2 { animation: rp 1.8s ease-out 0.6s infinite; transform-origin: 178px 54px; }
+                  @keyframes rp { 0% { r:6; opacity:.6; } 100% { r:18; opacity:0; } }
+                </style>
+              </defs>
+              <rect x="4" y="4" width="312" height="170" rx="10" fill="rgba(0,0,0,0.35)"/>
+              <rect x="0" y="0" width="312" height="170" rx="10" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="1"/>
+              <rect x="0" y="0" width="312" height="32" rx="10" fill="#2a2a2a"/>
+              <rect x="0" y="22" width="312" height="10" fill="#2a2a2a"/>
+              <circle cx="18" cy="16" r="5" fill="#ff5f57"/>
+              <circle cx="34" cy="16" r="5" fill="#febc2e"/>
+              <circle cx="50" cy="16" r="5" fill="#28c840"/>
+              <text x="156" y="21" font-family="-apple-system,sans-serif" font-size="11" fill="#c8c8c8" text-anchor="middle">rekordbox-bandcamp</text>
+              <line x1="0" y1="32" x2="312" y2="32" stroke="#3a3a3a" stroke-width="1"/>
+              <rect x="8" y="40" width="296" height="28" rx="4" fill="rgba(0,200,160,0.08)"/>
+              <rect x="16" y="46" width="16" height="16" rx="3" fill="#1a2e28"/>
+              <text x="18" y="58" font-family="monospace" font-size="8" fill="#00c8a0">$_</text>
+              <text x="38" y="59" font-family="-apple-system,sans-serif" font-size="12" font-weight="600" fill="#e0e0e0">Launch.command</text>
+              <rect x="16" y="78" width="16" height="16" rx="3" fill="#252525"/>
+              <text x="19" y="90" font-family="monospace" font-size="9" fill="#444">&lt;/&gt;</text>
+              <text x="38" y="91" font-family="-apple-system,sans-serif" font-size="12" fill="#4a4a4a">START HERE.html</text>
+              <rect x="16" y="106" width="16" height="16" rx="3" fill="#252525"/>
+              <text x="19" y="118" font-family="monospace" font-size="9" fill="#444">#</text>
+              <text x="38" y="118" font-family="-apple-system,sans-serif" font-size="12" fill="#4a4a4a">README.md</text>
+              <rect x="16" y="134" width="16" height="16" rx="3" fill="#252525"/>
+              <text x="19" y="146" font-family="monospace" font-size="9" fill="#444">py</text>
+              <text x="38" y="146" font-family="-apple-system,sans-serif" font-size="12" fill="#4a4a4a">server.py</text>
+              <circle class="cr1" cx="178" cy="54" r="6" fill="none" stroke="#00c8a0" stroke-width="1.5"/>
+              <circle class="cr2" cx="178" cy="54" r="6" fill="none" stroke="#00c8a0" stroke-width="1.5"/>
+              <g transform="translate(163, 40)">
+                <path d="M 2 2 L 2 17 L 5 13 L 7.5 19 L 9.5 18 L 7 12 L 11 12 Z" fill="rgba(0,0,0,0.4)" transform="translate(1,1)"/>
+                <path d="M 2 2 L 2 17 L 5 13 L 7.5 19 L 9.5 18 L 7 12 L 11 12 Z" fill="white" stroke="#111" stroke-width="0.6" stroke-linejoin="round"/>
+              </g>
+              <line x1="156" y1="175" x2="156" y2="188" stroke="#444" stroke-width="1" stroke-dasharray="3,2"/>
+              <text x="156" y="200" font-family="-apple-system,sans-serif" font-size="11" fill="#666" text-anchor="middle">Open in Finder and double-click</text>
+              <text x="156" y="213" font-family="-apple-system,sans-serif" font-size="11" fill="#666" text-anchor="middle">— this page redirects automatically</text>
+            </svg>
+
+            <p class="hint">It's in the same folder as this page. First launch installs everything automatically — takes about a minute.</p>
+
+            <div class="warn-box">
+              <div class="warn-title">⚠ macOS security warning?</div>
+              <p class="hint">macOS blocks scripts that aren't signed by a registered Apple developer. This app isn't commercially signed, but the code is open source and safe to inspect. To allow it: <strong>right-click</strong> (or Control+click) <strong>Launch.command</strong>, choose <strong>Open</strong>, then click <strong>Open</strong> again in the dialog. You only need to do this once.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Windows -->
+        <div id="win-instructions" style="display:none">
+          <div class="card">
+            <div class="step-label">Step 1 — In File Explorer, double-click this file</div>
+
+            <svg viewBox="0 0 320 215" width="100%" style="max-width:320px;margin:12px auto 16px;display:block;pointer-events:none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <style>
+                  .wr1 { animation: rp 1.8s ease-out infinite; transform-origin: 178px 79px; }
+                  .wr2 { animation: rp 1.8s ease-out 0.6s infinite; transform-origin: 178px 79px; }
+                </style>
+              </defs>
+              <rect x="4" y="4" width="312" height="170" rx="4" fill="rgba(0,0,0,0.35)"/>
+              <rect x="0" y="0" width="312" height="170" rx="4" fill="#202020" stroke="#3a3a3a" stroke-width="1"/>
+              <rect x="0" y="0" width="312" height="32" rx="4" fill="#2b2b2b"/>
+              <rect x="0" y="22" width="312" height="10" fill="#2b2b2b"/>
+              <text x="12" y="21" font-family="Segoe UI,sans-serif" font-size="11" fill="#c8c8c8">rekordbox-bandcamp</text>
+              <text x="264" y="21" font-family="Segoe UI,sans-serif" font-size="12" fill="#888">─</text>
+              <text x="282" y="21" font-family="Segoe UI,sans-serif" font-size="11" fill="#888">□</text>
+              <text x="300" y="21" font-family="Segoe UI,sans-serif" font-size="12" fill="#888">✕</text>
+              <line x1="0" y1="32" x2="312" y2="32" stroke="#3a3a3a" stroke-width="1"/>
+              <rect x="8" y="38" width="296" height="18" rx="3" fill="#1a1a1a" stroke="#3a3a3a" stroke-width="0.5"/>
+              <text x="14" y="51" font-family="monospace,sans-serif" font-size="9" fill="#555">C:\Users\you\Downloads\rekordbox-bandcamp</text>
+              <line x1="0" y1="60" x2="312" y2="60" stroke="#333" stroke-width="1"/>
+              <rect x="8" y="66" width="296" height="26" rx="3" fill="rgba(0,200,160,0.08)"/>
+              <rect x="16" y="72" width="16" height="14" rx="2" fill="#1a2e28"/>
+              <text x="17" y="83" font-family="monospace" font-size="8" fill="#00c8a0">.bat</text>
+              <text x="38" y="84" font-family="Segoe UI,sans-serif" font-size="12" font-weight="600" fill="#e0e0e0">Launch.bat</text>
+              <rect x="16" y="100" width="16" height="14" rx="2" fill="#252525"/>
+              <text x="17" y="111" font-family="monospace" font-size="8" fill="#444">htm</text>
+              <text x="38" y="112" font-family="Segoe UI,sans-serif" font-size="12" fill="#4a4a4a">START HERE.html</text>
+              <rect x="16" y="122" width="16" height="14" rx="2" fill="#252525"/>
+              <text x="18" y="133" font-family="monospace" font-size="8" fill="#444">.md</text>
+              <text x="38" y="134" font-family="Segoe UI,sans-serif" font-size="12" fill="#4a4a4a">README.md</text>
+              <rect x="16" y="144" width="16" height="14" rx="2" fill="#252525"/>
+              <text x="18" y="155" font-family="monospace" font-size="8" fill="#444">.py</text>
+              <text x="38" y="156" font-family="Segoe UI,sans-serif" font-size="12" fill="#4a4a4a">server.py</text>
+              <circle class="wr1" cx="178" cy="79" r="6" fill="none" stroke="#00c8a0" stroke-width="1.5"/>
+              <circle class="wr2" cx="178" cy="79" r="6" fill="none" stroke="#00c8a0" stroke-width="1.5"/>
+              <g transform="translate(163, 65)">
+                <path d="M 2 2 L 2 17 L 5 13 L 7.5 19 L 9.5 18 L 7 12 L 11 12 Z" fill="rgba(0,0,0,0.4)" transform="translate(1,1)"/>
+                <path d="M 2 2 L 2 17 L 5 13 L 7.5 19 L 9.5 18 L 7 12 L 11 12 Z" fill="white" stroke="#111" stroke-width="0.6" stroke-linejoin="round"/>
+              </g>
+              <line x1="156" y1="175" x2="156" y2="188" stroke="#444" stroke-width="1" stroke-dasharray="3,2"/>
+              <text x="156" y="200" font-family="Segoe UI,sans-serif" font-size="11" fill="#666" text-anchor="middle">Open in File Explorer and double-click</text>
+              <text x="156" y="213" font-family="Segoe UI,sans-serif" font-size="11" fill="#666" text-anchor="middle">— this page redirects automatically</text>
+            </svg>
+
+            <p class="hint">It's in the same folder as this page. First launch installs everything automatically — takes about a minute.</p>
+
+            <div class="warn-box">
+              <div class="warn-title">⚠ Windows SmartScreen warning?</div>
+              <p class="hint">Windows SmartScreen flags scripts that don't have a verified publisher certificate. This app isn't commercially signed, but the code is open source and safe to inspect. To allow it: click <strong>More info</strong> and then <strong>Run anyway</strong>. You only need to do this once.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="border-style:dashed;opacity:0.6">
+          <div class="step-label">Step 2 — Come back here</div>
+          <p class="hint">This page will detect when the app is running and take you there automatically.</p>
+        </div>
+
+    </div> <!-- col-steps -->
+    </div> <!-- two-col -->
+  </div> <!-- state-stopped -->
 
   <div id="state-running">
-    <div class="card">
+    <div class="card" style="text-align:center;max-width:400px;margin:0 auto">
       <div class="step-label">App is running</div>
-      <p class="hint" style="margin-bottom:16px">Taking you there now…</p>
+      <p class="hint" style="margin-bottom:16px;text-align:center">Taking you there now…</p>
       <a class="open-btn" href="http://localhost:8000">Open App →</a>
     </div>
   </div>
 
 </div>
 <script>
+  function setOS(os) {
+    document.getElementById('mac-instructions').style.display = os === 'mac' ? 'block' : 'none';
+    document.getElementById('win-instructions').style.display = os === 'win' ? 'block' : 'none';
+    document.getElementById('btn-mac').classList.toggle('active', os === 'mac');
+    document.getElementById('btn-win').classList.toggle('active', os === 'win');
+  }
+
+  const isWindows = navigator.userAgent.includes('Win');
+  setOS(isWindows ? 'win' : 'mac');
+
   function probe() {
     return new Promise(resolve => {
       const controller = new AbortController();
