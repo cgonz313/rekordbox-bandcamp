@@ -1,0 +1,11 @@
+[project]
+name = "rekordbox-bandcamp"
+version = "0.1.0"
+requires-python = ">=3.9"
+dependencies = [
+    "mutagen>=1.47",
+    "rapidfuzz>=3.0",
+    "playwright>=1.40",
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+]
