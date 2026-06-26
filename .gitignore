@@ -17,5 +17,8 @@ config.json
 Rekordbox-Bandcamp.app/
 static/images/app.ico
 
+# Claude Code local settings
+.claude/
+
 # macOS
 .DS_Store
