@@ -27,17 +27,17 @@ header {
   display: flex;
   align-items: baseline;
   gap: 12px;
-}
 
-header h1 {
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: -0.3px;
-}
+  & h1 {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+  }
 
-header span {
-  color: var(--muted);
-  font-size: 12px;
+  & span {
+    color: var(--muted);
+    font-size: 12px;
+  }
 }
 
 main {
@@ -86,22 +86,23 @@ button {
   font-weight: 500;
   padding: 8px 16px;
   transition: opacity 0.15s;
-}
 
-button:disabled { opacity: 0.35; cursor: not-allowed; }
+  &:disabled { opacity: 0.35; cursor: not-allowed; }
+}
 
 .btn-primary {
   background: var(--accent);
   color: #000;
+
+  &:hover:not(:disabled) { opacity: 0.85; }
 }
 
 .btn-secondary {
   background: var(--border);
   color: var(--text);
-}
 
-.btn-primary:hover:not(:disabled),
-.btn-secondary:hover:not(:disabled) { opacity: 0.85; }
+  &:hover:not(:disabled) { opacity: 0.85; }
+}
 
 /* ── Progress bar ── */
 .progress-wrap {
@@ -137,11 +138,11 @@ button:disabled { opacity: 0.35; cursor: not-allowed; }
   max-height: 360px;
   overflow-y: auto;
   margin-top: 4px;
-}
 
-#playlist-list::-webkit-scrollbar { width: 4px; }
-#playlist-list::-webkit-scrollbar-track { background: transparent; }
-#playlist-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  &::-webkit-scrollbar       { width: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+}
 
 .playlist-row {
   display: flex;
@@ -151,15 +152,15 @@ button:disabled { opacity: 0.35; cursor: not-allowed; }
   border-radius: 6px;
   cursor: pointer;
   transition: background 0.1s;
-}
 
-.playlist-row:hover { background: var(--border); }
+  &:hover { background: var(--border); }
 
-.playlist-row input[type="checkbox"] {
-  accent-color: var(--accent);
-  width: 15px;
-  height: 15px;
-  flex-shrink: 0;
+  & input[type="checkbox"] {
+    accent-color: var(--accent);
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+  }
 }
 
 .playlist-name { flex: 1; }
@@ -180,14 +181,12 @@ button:disabled { opacity: 0.35; cursor: not-allowed; }
   font-size: 12px;
   color: var(--muted);
   cursor: pointer;
-}
 
-.select-all-row input { accent-color: var(--accent); }
+  & input { accent-color: var(--accent); }
+}
 
 /* ── Export results ── */
-#results {
-  display: none;
-}
+#results { display: none; }
 
 .result-stats {
   display: flex;
@@ -195,7 +194,9 @@ button:disabled { opacity: 0.35; cursor: not-allowed; }
   margin-bottom: 16px;
 }
 
-.stat { text-align: center; }
+.stat {
+  text-align: center;
+}
 
 .stat-value {
   font-size: 28px;
@@ -224,9 +225,9 @@ button:disabled { opacity: 0.35; cursor: not-allowed; }
   font-size: 13px;
   text-decoration: none;
   margin-bottom: 16px;
-}
 
-.download-btn:hover { opacity: 0.85; }
+  &:hover { opacity: 0.85; }
+}
 
 .unmatched-toggle {
   font-size: 12px;
@@ -254,32 +255,30 @@ button:disabled { opacity: 0.35; cursor: not-allowed; }
   color: var(--muted);
   padding: 4px 0 0;
   min-height: 18px;
-}
 
-#statusbar.error { color: var(--danger); }
+  &.error { color: var(--danger); }
+}
 
 /* ── Directory input ── */
 .dir-row {
   display: flex;
   gap: 8px;
   align-items: center;
-}
 
-.dir-row input[type="text"] {
-  flex: 1;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  color: var(--text);
-  font-size: 12px;
-  font-family: "SF Mono", "Menlo", monospace;
-  padding: 7px 10px;
-  outline: none;
-  transition: border-color 0.15s;
-}
+  & input[type="text"] {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 12px;
+    font-family: "SF Mono", "Menlo", monospace;
+    padding: 7px 10px;
+    outline: none;
+    transition: border-color 0.15s;
 
-.dir-row input[type="text"]:focus {
-  border-color: var(--accent);
+    &:focus { border-color: var(--accent); }
+  }
 }
 
 /* ── Folder browser modal ── */
@@ -322,9 +321,9 @@ button:disabled { opacity: 0.35; cursor: not-allowed; }
   color: var(--muted);
   padding: 2px 6px;
   font-size: 14px;
-}
 
-.modal-close:hover { color: var(--text); }
+  &:hover { color: var(--text); }
+}
 
 .modal-path {
   padding: 10px 20px;
@@ -341,10 +340,10 @@ button:disabled { opacity: 0.35; cursor: not-allowed; }
   overflow-y: auto;
   flex: 1;
   padding: 8px 0;
-}
 
-.modal-list::-webkit-scrollbar { width: 4px; }
-.modal-list::-webkit-scrollbar-thumb { background: var(--border); }
+  &::-webkit-scrollbar       { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: var(--border); }
+}
 
 .dir-entry {
   display: flex;
@@ -354,11 +353,11 @@ button:disabled { opacity: 0.35; cursor: not-allowed; }
   cursor: pointer;
   font-size: 13px;
   transition: background 0.1s;
+
+  &:hover { background: var(--border); }
+
+  & .dir-icon { color: var(--accent); font-size: 14px; flex-shrink: 0; }
 }
-
-.dir-entry:hover { background: var(--border); }
-
-.dir-icon { color: var(--accent); font-size: 14px; flex-shrink: 0; }
 
 .dir-up {
   color: var(--muted);
@@ -375,5 +374,6 @@ button:disabled { opacity: 0.35; cursor: not-allowed; }
 }
 
 /* ── Misc ── */
-.hidden { display: none !important; }
-.row { display: flex; gap: 8px; align-items: center; }
+.hidden    { display: none !important; }
+.row       { display: flex; gap: 8px; align-items: center; }
+.index-row { margin-top: 10px; }
