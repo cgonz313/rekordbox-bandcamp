@@ -12,7 +12,8 @@ from xml.etree.ElementTree import ElementTree
 from xml.etree.ElementTree import indent as xml_indent
 
 import uvicorn
-from fastapi import BackgroundTasks, FastAPI, WebSocket, WebSocketDisconnect
+import threading
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from playwright.async_api import async_playwright, Browser, Page
@@ -105,9 +106,8 @@ async def browse(path: str = ""):
 
 
 @app.post("/shutdown")
-async def shutdown(background_tasks: BackgroundTasks):
-    async def _stop():
-        await asyncio.sleep(0.3)  # let the response reach the client first
+async def shutdown():
+    async def _close_playwright():
         if state.browser:
             try:
                 await state.browser.close()
@@ -118,10 +118,15 @@ async def shutdown(background_tasks: BackgroundTasks):
                 await state.pw.stop()
             except Exception:
                 pass
-        import os, signal
-        os.kill(os.getpid(), signal.SIGTERM)
 
-    background_tasks.add_task(_stop)
+    asyncio.create_task(_close_playwright())
+
+    def _exit():
+        import time, os
+        time.sleep(0.5)
+        os._exit(0)
+
+    threading.Thread(target=_exit, daemon=True).start()
     return {"ok": True}
 
 
