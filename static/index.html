@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>bandcamp → rekordbox</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header>
+  <h1>bandcamp → rekordbox</h1>
+  <span>local playlist converter</span>
+</header>
+
+<main>
+
+  <!-- Step 1: Index local library -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">1 · Local Library</span>
+      <span class="card-status" id="index-status"></span>
+    </div>
+    <div class="row">
+      <button class="btn-primary" id="index-btn">Index Library</button>
+      <span style="font-size:12px;color:var(--muted)">/Volumes/GONZTRACKS/cuts</span>
+    </div>
+    <div class="progress-wrap hidden" id="index-progress">
+      <div class="progress-label" id="index-label"></div>
+      <div class="progress-bar"><div class="progress-fill" id="index-fill"></div></div>
+    </div>
+  </div>
+
+  <!-- Step 2: Bandcamp login -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">2 · Bandcamp</span>
+      <span class="card-status" id="login-status"></span>
+    </div>
+    <button class="btn-primary" id="login-btn" disabled>Connect Bandcamp</button>
+    <p style="margin-top:10px;font-size:12px;color:var(--muted)">
+      Opens a browser window — log in normally, then come back here.
+    </p>
+  </div>
+
+  <!-- Step 3: Playlist selection -->
+  <div class="card hidden" id="playlists-card">
+    <div class="card-header">
+      <span class="card-title">3 · Playlists</span>
+    </div>
+    <label class="select-all-row hidden" id="select-all-row">
+      <input type="checkbox" id="select-all-chk"> Select all
+    </label>
+    <div id="playlist-list"></div>
+    <div style="margin-top:14px">
+      <button class="btn-primary" id="export-btn" disabled>Export</button>
+    </div>
+    <div class="progress-wrap hidden" id="match-progress">
+      <div class="progress-label" id="match-label"></div>
+      <div class="progress-bar"><div class="progress-fill" id="match-fill"></div></div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="card" id="results" style="display:none">
+    <div class="card-header">
+      <span class="card-title">Export Result</span>
+    </div>
+    <div class="result-stats">
+      <div class="stat">
+        <div class="stat-value" id="stat-matched">—</div>
+        <div class="stat-label">Matched</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="stat-total">—</div>
+        <div class="stat-label">Total</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="stat-unmatched" style="color:var(--warn)">—</div>
+        <div class="stat-label">Unmatched</div>
+      </div>
+    </div>
+    <a class="download-btn" id="download-link" href="#" download>Download XML</a>
+    <br>
+    <button class="unmatched-toggle hidden" id="unmatched-toggle">Show unmatched tracks</button>
+    <div class="unmatched-list" id="unmatched-list"></div>
+  </div>
+
+  <div id="statusbar"></div>
+
+</main>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
