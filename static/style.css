@@ -465,6 +465,28 @@ button:disabled { opacity: 0.35; cursor: not-allowed; }
   .logo-bc, .logo-rb { height: 70px; }
 }
 
+/* ── Stop button ── */
+.btn-stop {
+  position: fixed;
+  top: 16px;
+  right: 68px;
+  background: var(--danger);
+  border: none;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  box-shadow: 0 4px 16px rgba(239,68,68,0.4);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-stop:hover { opacity: 0.85; }
+
 /* ── Misc ── */
 .hidden { display: none !important; }
 .row { display: flex; gap: 8px; align-items: center; }
