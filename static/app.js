@@ -383,5 +383,13 @@ themeToggle.addEventListener('click', () => {
 
 setTheme(localStorage.getItem('theme') || 'dark');
 
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  $('tab-workflow').style.display = tab === 'workflow' ? 'flex' : 'none';
+  $('tab-help').style.display     = tab === 'help'     ? 'flex' : 'none';
+  $('tab-workflow-btn').classList.toggle('active', tab === 'workflow');
+  $('tab-help-btn').classList.toggle('active',     tab === 'help');
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 connect();

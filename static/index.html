@@ -32,6 +32,13 @@
 
 <main>
 
+  <div class="tab-bar">
+    <button class="tab-btn active" id="tab-workflow-btn">Workflow</button>
+    <button class="tab-btn" id="tab-help-btn">Help</button>
+  </div>
+
+  <div id="tab-workflow">
+
   <!-- Step 1: Index local library -->
   <div class="card">
     <div class="card-header">
@@ -112,6 +119,89 @@
 
   <div id="statusbar"></div>
 
+  </div><!-- #tab-workflow -->
+
+  <div id="tab-help" style="display:none">
+    <div class="card">
+      <div class="card-header"><span class="card-title">Using the app</span></div>
+      <div class="help-steps">
+        <div class="help-step">
+          <div class="help-step-num">1</div>
+          <div>
+            <div class="help-step-title">Set your music folder</div>
+            <div class="help-step-desc">Add the folder(s) where your music files live, then click <strong>Index Library</strong>. The first scan reads metadata from every file — it may take a few minutes. Future scans are instant thanks to a local cache.</div>
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-num">2</div>
+          <div>
+            <div class="help-step-title">Connect Bandcamp</div>
+            <div class="help-step-desc">A browser window opens. Log in normally — your credentials are never stored. Once logged in, your playlists load here automatically. You have 3 minutes before the session times out; if it does, just click Connect again.</div>
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-num">3</div>
+          <div>
+            <div class="help-step-title">Select playlists</div>
+            <div class="help-step-desc">Check the playlists you want to export. Use <em>Select all</em> to grab everything at once.</div>
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-num">4</div>
+          <div>
+            <div class="help-step-title">Export</div>
+            <div class="help-step-desc">Each track is fuzzy-matched against your local files using embedded metadata. The result is a <code>.xml</code> file saved to your chosen export folder.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="card-title">Importing into rekordbox</span></div>
+      <div class="help-steps">
+        <div class="help-step">
+          <div class="help-step-num">1</div>
+          <div class="help-step-desc">Open rekordbox</div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-num">2</div>
+          <div class="help-step-desc">Go to <strong>Preferences → Advanced → rekordbox xml → Imported Library</strong> and point it to your <code>.xml</code> file</div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-num">3</div>
+          <div class="help-step-desc">Your playlists appear in the left sidebar under <strong>rekordbox xml</strong></div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-num">4</div>
+          <div class="help-step-desc">Drag them into your main library</div>
+        </div>
+      </div>
+      <p class="card-hint" style="margin-top:14px;margin-bottom:0">On macOS, make sure your music drive is mounted before importing — rekordbox needs to resolve the file paths at import time.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="card-title">Troubleshooting</span></div>
+      <div class="help-issues">
+        <div class="help-issue">
+          <div class="help-issue-title">Low match rate</div>
+          <div class="help-issue-desc">Tracks without embedded metadata tags fall back to filename parsing, which is less reliable. Adding proper ID3/AIFF tags with a tool like <strong>MusicBrainz Picard</strong> will improve results.</div>
+        </div>
+        <div class="help-issue">
+          <div class="help-issue-title">Tracks show as missing in rekordbox</div>
+          <div class="help-issue-desc">The XML uses absolute file paths. If tracks show missing, make sure the music drive is connected and re-import the XML.</div>
+        </div>
+        <div class="help-issue">
+          <div class="help-issue-title">"Directory not found" error</div>
+          <div class="help-issue-desc">Make sure the drive is mounted and the path is correct before indexing.</div>
+        </div>
+        <div class="help-issue">
+          <div class="help-issue-title">Browser doesn't open</div>
+          <div class="help-issue-desc">Re-click <strong>Connect Bandcamp</strong>. If it still doesn't open, try stopping and restarting the server.</div>
+        </div>
+      </div>
+    </div>
+  </div><!-- #tab-help -->
+
 </main>
 
 <!-- Folder browser modal -->
@@ -131,5 +221,21 @@
 </div>
 
 <script src="/static/app.js"></script>
+<script>
+  (function() {
+    var wBtn = document.getElementById('tab-workflow-btn');
+    var hBtn = document.getElementById('tab-help-btn');
+    var wPane = document.getElementById('tab-workflow');
+    var hPane = document.getElementById('tab-help');
+    wBtn.onclick = function() {
+      wPane.style.display = 'flex'; hPane.style.display = 'none';
+      wBtn.classList.add('active'); hBtn.classList.remove('active');
+    };
+    hBtn.onclick = function() {
+      hPane.style.display = 'flex'; wPane.style.display = 'none';
+      hBtn.classList.add('active'); wBtn.classList.remove('active');
+    };
+  })();
+</script>
 </body>
 </html>
