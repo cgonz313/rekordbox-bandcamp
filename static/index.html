@@ -21,9 +21,13 @@
       <span class="card-title">1 · Local Library</span>
       <span class="card-status" id="index-status"></span>
     </div>
-    <div class="row">
+    <div class="dir-row">
+      <input type="text" id="music-dir-input" placeholder="~/Music" spellcheck="false">
+      <button class="btn-secondary" id="dir-browse-btn">Browse…</button>
+      <button class="btn-secondary" id="dir-save-btn">Set</button>
+    </div>
+    <div class="row" style="margin-top:10px">
       <button class="btn-primary" id="index-btn">Index Library</button>
-      <span style="font-size:12px;color:var(--muted)">/Volumes/GONZTRACKS/cuts</span>
     </div>
     <div class="progress-wrap hidden" id="index-progress">
       <div class="progress-label" id="index-label"></div>
@@ -53,6 +57,11 @@
     </label>
     <div id="playlist-list"></div>
     <div style="margin-top:14px">
+      <div class="dir-row" style="margin-bottom:10px">
+        <input type="text" id="export-dir-input" placeholder="~/Desktop" spellcheck="false">
+        <button class="btn-secondary" id="export-dir-browse-btn">Browse…</button>
+        <button class="btn-secondary" id="export-dir-save-btn">Set</button>
+      </div>
       <button class="btn-primary" id="export-btn" disabled>Export</button>
     </div>
     <div class="progress-wrap hidden" id="match-progress">
@@ -89,6 +98,22 @@
   <div id="statusbar"></div>
 
 </main>
+
+<!-- Folder browser modal -->
+<div id="browse-modal" class="modal-backdrop hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Select Folder</span>
+      <button class="modal-close" id="browse-close">✕</button>
+    </div>
+    <div class="modal-path" id="browse-path"></div>
+    <div class="modal-list" id="browse-list"></div>
+    <div class="modal-footer">
+      <button class="btn-secondary" id="browse-cancel">Cancel</button>
+      <button class="btn-primary" id="browse-select">Select This Folder</button>
+    </div>
+  </div>
+</div>
 
 <script src="/static/app.js"></script>
 </body>

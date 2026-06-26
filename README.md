@@ -12,9 +12,9 @@ Converts your private Bandcamp playlists into a Rekordbox XML file, matched agai
 
 ## Requirements
 
-- macOS
+- macOS or Windows
 - Python 3.9+
-- Local music files on `/Volumes/GONZTRACKS/cuts/`
+- Local music files (AIFF, MP3, WAV, M4A)
 - Bandcamp account with purchased tracks
 
 ---
@@ -34,17 +34,20 @@ python3 -m playwright install chromium
 
 ### Web interface (recommended)
 
+**Double-click `start.command`** (macOS) or **`start.bat`** (Windows) — the server starts and your browser opens automatically.
+
+Or from the terminal:
+
 ```bash
 python3 server.py
 ```
 
-Then open **http://localhost:8000** in your browser.
-
 **Steps in the UI:**
-1. **Index Library** — scans `/Volumes/GONZTRACKS/cuts/` and reads track metadata (~30–60s for 19k files)
-2. **Connect Bandcamp** — opens a browser window, log in normally, then come back
-3. **Select playlists** — check the ones you want to export
-4. **Export** — matches tracks and downloads the XML
+1. **Set your music folder** — type the path or click Browse… to pick it
+2. **Index Library** — reads track metadata from your files (cached after first run)
+3. **Connect Bandcamp** — opens a browser window, log in normally, then come back
+4. **Select playlists** — check the ones you want to export
+5. **Export** — matches tracks and downloads the XML
 
 ### Command line (alternative)
 
@@ -67,8 +70,8 @@ python3 main.py
 
 ## Troubleshooting
 
-**"Drive not found" error**
-Make sure `GONZTRACKS` is plugged in and mounted before indexing.
+**"Directory not found" error**
+Make sure the drive is mounted/connected and the path is correct before indexing.
 
 **Tracks show as missing in Rekordbox**
 The XML uses `file://localhost/Volumes/...` paths. If tracks still show missing, try re-importing after mounting the drive.
@@ -87,7 +90,6 @@ Re-click "Connect Bandcamp". You have 3 minutes to log in before it times out.
 rekordbox-bandcamp/
 ├── server.py          # Web server (FastAPI + WebSocket)
 ├── main.py            # CLI version + shared scraping/matching logic
-├── diagnose.py        # Debug tool for inspecting Bandcamp page structure
 ├── static/
 │   ├── index.html     # Web UI
 │   ├── style.css      # Styles
