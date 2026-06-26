@@ -17,8 +17,9 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from playwright.async_api import async_playwright, Browser, Page
 
+import json
+
 from main import (
-    MUSIC_DIR,
     AUDIO_EXTS,
     read_tags,
     match_track,
@@ -27,6 +28,28 @@ from main import (
     _find_playlist_stubs,
     _fetch_playlist_tracks,
 )
+
+# ── Config ────────────────────────────────────────────────────────────────────
+
+CONFIG_PATH = Path("config.json")
+_DEFAULT_MUSIC_DIR  = str(Path.home() / "Music")
+_DEFAULT_EXPORT_DIR = str(Path(__file__).parent / "exports")
+
+
+def load_config() -> dict:
+    cfg = {}
+    if CONFIG_PATH.exists():
+        try:
+            cfg = json.loads(CONFIG_PATH.read_text())
+        except Exception:
+            pass
+    cfg.setdefault("music_dir", _DEFAULT_MUSIC_DIR)
+    cfg.setdefault("export_dir", _DEFAULT_EXPORT_DIR)
+    return cfg
+
+
+def save_config(cfg: dict):
+    CONFIG_PATH.write_text(json.dumps(cfg, indent=2))
 
 # ── App setup ─────────────────────────────────────────────────────────────────
 
@@ -38,6 +61,42 @@ app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 @app.get("/")
 async def root():
     return FileResponse(static_dir / "index.html")
+
+
+@app.get("/browse")
+async def browse(path: str = ""):
+    import sys
+    if not path:
+        # Sensible starting point per platform
+        if sys.platform == "win32":
+            import string
+            entries = [
+                {"name": f"{d}:\\", "path": f"{d}:\\", "is_dir": True}
+                for d in string.ascii_uppercase
+                if Path(f"{d}:\\").exists()
+            ]
+            return {"path": "", "entries": entries}
+        else:
+            path = str(Path.home())
+
+    p = Path(path)
+    if not p.exists() or not p.is_dir():
+        return {"error": f"Not a directory: {path}"}
+
+    try:
+        entries = sorted(
+            [
+                {"name": child.name, "path": str(child), "is_dir": child.is_dir()}
+                for child in p.iterdir()
+                if child.is_dir() and not child.name.startswith(".")
+            ],
+            key=lambda e: e["name"].lower(),
+        )
+    except PermissionError:
+        entries = []
+
+    parent = str(p.parent) if p.parent != p else None
+    return {"path": str(p), "parent": parent, "entries": entries}
 
 
 @app.get("/download/{filename:path}")
@@ -58,8 +117,18 @@ class State:
     local_files: list[dict] = []
     playlists: list[dict] = []      # [{name, url, track_count, _raw}]
     last_export: str | None = None  # path to most recent XML
+    config: dict = None             # loaded from config.json
+
+    @property
+    def music_dir(self) -> Path:
+        return Path(self.config["music_dir"])
+
+    @property
+    def export_dir(self) -> Path:
+        return Path(self.config["export_dir"])
 
 state = State()
+state.config = load_config()
 
 
 # ── WebSocket ─────────────────────────────────────────────────────────────────
@@ -72,7 +141,11 @@ async def ws_endpoint(ws: WebSocket):
         while True:
             msg = await ws.receive_json()
             action = msg.get("action")
-            if action == "index":
+            if action == "set_music_dir":
+                await _handle_set_music_dir(ws, msg.get("path", ""))
+            elif action == "set_export_dir":
+                await _handle_set_export_dir(ws, msg.get("path", ""))
+            elif action == "index":
                 await _handle_index(ws)
             elif action == "login":
                 await _handle_login(ws)
@@ -98,6 +171,8 @@ async def _send_initial_state(ws: WebSocket):
         username=state.username,
         playlists=[_stub_summary(p) for p in state.playlists],
         last_export=state.last_export,
+        music_dir=str(state.music_dir),
+        export_dir=str(state.export_dir),
     )
 
 
@@ -138,13 +213,34 @@ def _load_cache() -> dict[str, dict]:
         return {}
 
 
+async def _handle_set_music_dir(ws: WebSocket, path: str):
+    p = Path(path.strip())
+    if not p.exists():
+        await send(ws, type="error", message=f"Path not found: {p}")
+        return
+    state.config["music_dir"] = str(p)
+    save_config(state.config)
+    state.local_files = []  # invalidate index
+    await send(ws, type="music_dir_set", path=str(p), indexed=0)
+
+
+async def _handle_set_export_dir(ws: WebSocket, path: str):
+    p = Path(path.strip())
+    if not p.exists():
+        await send(ws, type="error", message=f"Path not found: {p}")
+        return
+    state.config["export_dir"] = str(p)
+    save_config(state.config)
+    await send(ws, type="export_dir_set", path=str(p))
+
+
 async def _handle_index(ws: WebSocket):
-    if not MUSIC_DIR.exists():
-        await send(ws, type="error", message=f"Drive not found: {MUSIC_DIR}")
+    if not state.music_dir.exists():
+        await send(ws, type="error", message=f"Directory not found: {state.music_dir}")
         return
 
     files = sorted(
-        f for f in MUSIC_DIR.iterdir()
+        f for f in state.music_dir.iterdir()
         if f.suffix.lower() in AUDIO_EXTS and not f.name.startswith("._")
     )
     total = len(files)
@@ -300,8 +396,9 @@ async def _handle_export(ws: WebSocket, selected: list[dict]):
                 matched=matched_count,
             )
 
-    # Build and write XML
-    output_path = _output_path(playlists)
+    # Build and write XML into the configured export directory
+    state.export_dir.mkdir(parents=True, exist_ok=True)
+    output_path = state.export_dir / _output_path(playlists).name
     xml_root = build_rekordbox_xml(playlists)
     xml_indent(xml_root, space="  ")
     ElementTree(xml_root).write(output_path, encoding="utf-8", xml_declaration=True)
@@ -326,6 +423,15 @@ async def _handle_export(ws: WebSocket, selected: list[dict]):
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────
+
+async def _open_browser():
+    import webbrowser
+    await asyncio.sleep(1.0)
+    webbrowser.open("http://localhost:8000")
+
+@app.on_event("startup")
+async def startup():
+    asyncio.create_task(_open_browser())
 
 if __name__ == "__main__":
     print("Starting server → http://localhost:8000")
