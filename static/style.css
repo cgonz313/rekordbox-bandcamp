@@ -5,7 +5,7 @@
   --surface: #181818;
   --border:  #2a2a2a;
   --text:    #e0e0e0;
-  --muted:   #666;
+  --muted:   #c8c8c8;
   --accent:  #00c8a0;
   --warn:    #f59e0b;
   --danger:  #ef4444;
@@ -18,7 +18,7 @@
   --surface: #ffffff;
   --border:  #e4e4e7;
   --text:    #18181b;
-  --muted:   #71717a;
+  --muted:   #27272a;
   --accent:  #0d9488;
   --warn:    #d97706;
   --danger:  #dc2626;
@@ -130,10 +130,13 @@ main {
 }
 
 .card-hint {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--muted);
-  line-height: 1.6;
-  margin-bottom: 12px;
+  line-height: 1.5;
+  margin-bottom: 14px;
+  padding: 6px 10px;
+  border-left: 2px solid var(--border);
+  opacity: 0.75;
 }
 
 /* ── Buttons ── */
