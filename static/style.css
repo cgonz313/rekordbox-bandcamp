@@ -258,6 +258,40 @@ button:disabled { opacity: 0.35; cursor: not-allowed; }
 
 #statusbar.error { color: var(--danger); }
 
+/* ── Music dirs list ── */
+#music-dirs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.music-dir-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: "SF Mono", "Menlo", monospace;
+}
+
+.music-dir-path { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.btn-remove {
+  background: none;
+  color: var(--muted);
+  padding: 0 4px;
+  font-size: 16px;
+  line-height: 1;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.btn-remove:hover { color: var(--danger); }
+
 /* ── Directory input ── */
 .dir-row {
   display: flex;

@@ -10,9 +10,8 @@ const indexStatus       = $('index-status');
 const indexProgress     = $('index-progress');
 const indexFill         = $('index-fill');
 const indexLabel        = $('index-label');
-const musicDirInput     = $('music-dir-input');
-const dirBrowseBtn      = $('dir-browse-btn');
-const dirSaveBtn        = $('dir-save-btn');
+const musicDirsList     = $('music-dirs-list');
+const addDirBtn         = $('add-dir-btn');
 const exportDirInput    = $('export-dir-input');
 const exportDirBrowse   = $('export-dir-browse-btn');
 const exportDirSave     = $('export-dir-save-btn');
@@ -60,10 +59,10 @@ async function browseDir(path) {
   }
 }
 
-function openBrowser(targetInput, wsAction) {
-  browseTarget = { input: targetInput, action: wsAction };
+function openBrowser(wsAction, startPath = '') {
+  browseTarget = { action: wsAction };
   browseModal.classList.remove('hidden');
-  browseDir(targetInput.value.trim() || '');
+  browseDir(startPath || '');
 }
 
 function closeBrowser() {
@@ -71,8 +70,8 @@ function closeBrowser() {
   browseTarget = null;
 }
 
-dirBrowseBtn.addEventListener('click',       () => openBrowser(musicDirInput,  'set_music_dir'));
-exportDirBrowse.addEventListener('click',    () => openBrowser(exportDirInput, 'set_export_dir'));
+addDirBtn.addEventListener('click',          () => openBrowser('add_music_dir'));
+exportDirBrowse.addEventListener('click',    () => openBrowser('set_export_dir', exportDirInput.value.trim()));
 browseClose.addEventListener('click',  closeBrowser);
 browseCancel.addEventListener('click', closeBrowser);
 browseModal.addEventListener('click', e => {
@@ -81,7 +80,9 @@ browseModal.addEventListener('click', e => {
 
 browseSelect.addEventListener('click', () => {
   if (currentBrowsePath && browseTarget) {
-    browseTarget.input.value = currentBrowsePath;
+    if (browseTarget.action === 'set_export_dir') {
+      exportDirInput.value = currentBrowsePath;
+    }
     send({ action: browseTarget.action, path: currentBrowsePath });
     closeBrowser();
   }
@@ -136,7 +137,7 @@ function handle(msg) {
   switch (msg.type) {
 
     case 'init':
-      if (msg.music_dir)   musicDirInput.value = msg.music_dir;
+      if (msg.music_dirs)  renderMusicDirs(msg.music_dirs);
       if (msg.export_dir)  exportDirInput.value = msg.export_dir;
       if (msg.indexed > 0) setIndexDone(msg.indexed);
       if (msg.username)    setLoggedIn(msg.username);
@@ -144,10 +145,10 @@ function handle(msg) {
       if (msg.last_export) showDownload(msg.last_export);
       break;
 
-    case 'music_dir_set':
-      musicDirInput.value = msg.path;
+    case 'music_dirs_updated':
+      renderMusicDirs(msg.dirs);
       indexStatus.textContent = '';
-      setStatus(`Music directory set — click Index Library to scan`);
+      setStatus('Music folders updated — click Index Library to scan');
       break;
 
     case 'export_dir_set':
@@ -216,6 +217,19 @@ function handle(msg) {
 }
 
 // ── UI helpers ────────────────────────────────────────────────────────────────
+function renderMusicDirs(dirs) {
+  musicDirsList.innerHTML = '';
+  for (const dir of dirs) {
+    const row = document.createElement('div');
+    row.className = 'music-dir-item';
+    row.innerHTML = `<span class="dir-icon">▶</span><span class="music-dir-path">${escHtml(dir)}</span><button class="btn-remove" title="Remove">×</button>`;
+    row.querySelector('.btn-remove').addEventListener('click', () => {
+      send({ action: 'remove_music_dir', path: dir });
+    });
+    musicDirsList.appendChild(row);
+  }
+}
+
 function setStatus(text, isError = false) {
   statusbar.textContent = text;
   statusbar.className = isError ? 'error' : '';
@@ -305,15 +319,6 @@ function escHtml(s) {
 }
 
 // ── Button handlers ───────────────────────────────────────────────────────────
-dirSaveBtn.addEventListener('click', () => {
-  const path = musicDirInput.value.trim();
-  if (path) send({ action: 'set_music_dir', path });
-});
-
-musicDirInput.addEventListener('keydown', e => {
-  if (e.key === 'Enter') dirSaveBtn.click();
-});
-
 exportDirSave.addEventListener('click', () => {
   const path = exportDirInput.value.trim();
   if (path) send({ action: 'set_export_dir', path });
