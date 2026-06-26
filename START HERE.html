@@ -24,37 +24,22 @@
       width: 100%;
     }
 
-    .logo-row {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 20px;
-      margin-bottom: 32px;
+    .title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      margin-bottom: 6px;
     }
 
-    .logo-row img { height: 80px; width: auto; }
+    .title span { color: #00c8a0; }
 
-    .logo-sep {
-      font-size: 28px;
-      font-weight: 300;
-      color: #2a2a2a;
-    }
-
-    h1 {
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 10px;
-      color: #e0e0e0;
-    }
-
-    .sub {
+    .tagline {
       font-size: 13px;
       color: #c8c8c8;
-      margin-bottom: 36px;
-      line-height: 1.6;
+      margin-bottom: 40px;
     }
 
-    .step {
+    .card {
       background: #181818;
       border: 1px solid #2a2a2a;
       border-radius: 10px;
@@ -68,25 +53,21 @@
       letter-spacing: 0.6px;
       text-transform: uppercase;
       color: #c8c8c8;
-      margin-bottom: 10px;
+      margin-bottom: 14px;
     }
 
     .file-name {
       display: inline-block;
-      font-size: 17px;
-      font-weight: 600;
+      font-size: 14px;
+      font-family: "SF Mono", "Menlo", monospace;
       color: #00c8a0;
-      background: rgba(0,200,160,0.08);
-      border: 1px solid rgba(0,200,160,0.2);
-      border-radius: 8px;
-      padding: 8px 18px;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
     }
 
-    .step-hint {
+    .hint {
       font-size: 12px;
       color: #c8c8c8;
-      line-height: 1.5;
+      line-height: 1.6;
     }
 
     .checking {
@@ -96,11 +77,11 @@
     }
 
     @keyframes pulse {
-      0%, 100% { opacity: 0.5; }
-      50% { opacity: 1; }
+      0%, 100% { opacity: 0.4; }
+      50%       { opacity: 1;   }
     }
 
-    .btn {
+    .open-btn {
       display: inline-block;
       background: #00c8a0;
       color: #000;
@@ -109,71 +90,140 @@
       padding: 12px 28px;
       border-radius: 8px;
       text-decoration: none;
-      margin-top: 8px;
+      margin-top: 4px;
     }
 
-    .btn:hover { opacity: 0.85; }
+    .open-btn:hover { opacity: 0.85; }
 
     #state-checking { display: block; }
-    #state-stopped  { display: none; }
-    #state-running  { display: none; }
+    #state-stopped  { display: none;  }
+    #state-running  { display: none;  }
   </style>
 </head>
 <body>
 <div class="wrap">
 
-  <div class="logo-row">
-    <img src="static/images/bc-logo-512.png" alt="Bandcamp">
-    <span class="logo-sep">→</span>
-    <img src="static/images/rb-logo.png" alt="rekordbox">
-  </div>
+  <h1 class="title">bandcamp <span>→</span> rekordbox</h1>
+  <p class="tagline">Bandcamp playlist converter for rekordbox</p>
 
-  <!-- Checking -->
   <div id="state-checking">
-    <p class="checking">Checking if the app is running…</p>
+    <p class="checking">Checking…</p>
   </div>
 
-  <!-- Server not running -->
   <div id="state-stopped">
-    <div class="step">
-      <div class="step-label">To get started</div>
-      <div class="file-name">Launch.command</div>
-      <div class="step-hint">Double-click the file above in Finder.<br>First launch installs everything automatically.</div>
+    <div class="card">
+      <div class="step-label">Step 1 — In Finder, double-click this file</div>
+
+      <svg viewBox="0 0 320 215" width="100%" style="max-width:320px;margin:12px auto 16px;display:block;pointer-events:none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <style>
+            .click-ring { animation: ripple 1.8s ease-out infinite; transform-origin: 178px 54px; }
+            .click-ring2 { animation: ripple 1.8s ease-out 0.6s infinite; transform-origin: 178px 54px; }
+            @keyframes ripple {
+              0%   { r: 6; opacity: 0.6; }
+              100% { r: 18; opacity: 0; }
+            }
+          </style>
+        </defs>
+
+        <!-- Window shadow -->
+        <rect x="4" y="4" width="312" height="170" rx="10" fill="rgba(0,0,0,0.35)"/>
+        <!-- Window -->
+        <rect x="0" y="0" width="312" height="170" rx="10" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="1"/>
+        <!-- Title bar -->
+        <rect x="0" y="0" width="312" height="32" rx="10" fill="#2a2a2a"/>
+        <rect x="0" y="22" width="312" height="10" fill="#2a2a2a"/>
+        <!-- Traffic lights -->
+        <circle cx="18" cy="16" r="5" fill="#ff5f57"/>
+        <circle cx="34" cy="16" r="5" fill="#febc2e"/>
+        <circle cx="50" cy="16" r="5" fill="#28c840"/>
+        <!-- Folder name -->
+        <text x="156" y="21" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="11" fill="#c8c8c8" text-anchor="middle">rekordbox-bandcamp</text>
+        <!-- Divider -->
+        <line x1="0" y1="32" x2="312" y2="32" stroke="#3a3a3a" stroke-width="1"/>
+
+        <!-- Launch.command row (subtle, not button-like) -->
+        <rect x="8" y="40" width="296" height="28" rx="4" fill="rgba(0,200,160,0.08)"/>
+        <rect x="16" y="46" width="16" height="16" rx="3" fill="#1a2e28"/>
+        <text x="18" y="58" font-family="monospace" font-size="8" fill="#00c8a0">$_</text>
+        <text x="38" y="59" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" font-weight="600" fill="#e0e0e0">Launch.command</text>
+
+        <!-- Other files -->
+        <rect x="16" y="78" width="16" height="16" rx="3" fill="#252525"/>
+        <text x="19" y="90" font-family="monospace" font-size="9" fill="#444">&lt;/&gt;</text>
+        <text x="38" y="91" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" fill="#4a4a4a">START HERE.html</text>
+
+        <rect x="16" y="106" width="16" height="16" rx="3" fill="#252525"/>
+        <text x="19" y="118" font-family="monospace" font-size="9" fill="#444">#</text>
+        <text x="38" y="118" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" fill="#4a4a4a">README.md</text>
+
+        <rect x="16" y="134" width="16" height="16" rx="3" fill="#252525"/>
+        <text x="19" y="146" font-family="monospace" font-size="9" fill="#444">py</text>
+        <text x="38" y="146" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" fill="#4a4a4a">server.py</text>
+
+        <!-- Click ripple animation on Launch.command -->
+        <circle class="click-ring"  cx="178" cy="54" r="6" fill="none" stroke="#00c8a0" stroke-width="1.5"/>
+        <circle class="click-ring2" cx="178" cy="54" r="6" fill="none" stroke="#00c8a0" stroke-width="1.5"/>
+
+        <!-- macOS cursor over Launch.command -->
+        <g transform="translate(163, 40)">
+          <path d="M 2 2 L 2 17 L 5 13 L 7.5 19 L 9.5 18 L 7 12 L 11 12 Z" fill="rgba(0,0,0,0.4)" transform="translate(1,1)"/>
+          <path d="M 2 2 L 2 17 L 5 13 L 7.5 19 L 9.5 18 L 7 12 L 11 12 Z" fill="white" stroke="#111" stroke-width="0.6" stroke-linejoin="round"/>
+        </g>
+
+        <!-- Annotation arrow + label below window -->
+        <line x1="156" y1="175" x2="156" y2="188" stroke="#444" stroke-width="1" stroke-dasharray="3,2"/>
+        <text x="156" y="200" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="11" fill="#666" text-anchor="middle">Open in Finder and double-click</text>
+        <text x="156" y="213" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="11" fill="#666" text-anchor="middle">— this page redirects automatically</text>
+      </svg>
+
+      <p class="hint">It's in the same folder as this page.<br>First launch installs everything automatically — takes about a minute.</p>
     </div>
-    <p class="sub" style="margin-bottom:0;font-size:12px">Once the app is running, this page will take you there automatically.</p>
+    <div class="card" style="border-style:dashed;opacity:0.6">
+      <div class="step-label">Step 2 — Come back here</div>
+      <p class="hint">This page will detect when the app is running and take you there automatically.</p>
+    </div>
   </div>
 
-  <!-- Server running -->
   <div id="state-running">
-    <h1>App is running</h1>
-    <p class="sub">Taking you there now…</p>
-    <a class="btn" href="http://localhost:8000">Open App →</a>
+    <div class="card">
+      <div class="step-label">App is running</div>
+      <p class="hint" style="margin-bottom:16px">Taking you there now…</p>
+      <a class="open-btn" href="http://localhost:8000">Open App →</a>
+    </div>
   </div>
 
 </div>
-
 <script>
-  async function check() {
-    try {
-      const res = await fetch('http://localhost:8000', { signal: AbortSignal.timeout(1500) });
-      if (res.ok) {
-        document.getElementById('state-checking').style.display = 'none';
-        document.getElementById('state-running').style.display = 'block';
-        setTimeout(() => { window.location.href = 'http://localhost:8000'; }, 1200);
-        return true;
-      }
-    } catch {}
-    return false;
+  function probe() {
+    return new Promise(resolve => {
+      const controller = new AbortController();
+      const timer = setTimeout(() => { controller.abort(); resolve(false); }, 1500);
+      fetch('http://localhost:8000/', { mode: 'no-cors', signal: controller.signal })
+        .then(() => { clearTimeout(timer); resolve(true);  })
+        .catch(() => { clearTimeout(timer); resolve(false); });
+    });
+  }
+
+  function show(id) {
+    ['state-checking','state-stopped','state-running'].forEach(s =>
+      document.getElementById(s).style.display = s === id ? 'block' : 'none'
+    );
   }
 
   async function init() {
-    const running = await check();
-    if (!running) {
-      document.getElementById('state-checking').style.display = 'none';
-      document.getElementById('state-stopped').style.display = 'block';
-      // Keep polling — if they launch the server, redirect automatically
-      setInterval(async () => {
-        if (await check()) clearInterval();
+    const running = await probe();
+    if (running) {
+      show('state-running');
+      setTimeout(() => { window.location.href = 'http://localhost:8000'; }, 1200);
+    } else {
+      show('state-stopped');
+      const iv = setInterval(async () => {
+        if (await probe()) {
+          clearInterval(iv);
+          show('state-running');
+          setTimeout(() => { window.location.href = 'http://localhost:8000'; }, 1200);
+        }
       }, 2000);
     }
   }
