@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+
+# Generated XML exports
+*.xml
+
+# Diagnostic debug files
+debug_*.html
+debug_*.json
+debug_*.txt
+
+# macOS
+.DS_Store
