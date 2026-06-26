@@ -1,0 +1,244 @@
+/* bandcamp → rekordbox  |  client-side logic */
+
+let ws;
+
+// ── DOM refs ──────────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+
+const indexBtn       = $('index-btn');
+const indexStatus    = $('index-status');
+const indexProgress  = $('index-progress');
+const indexFill      = $('index-fill');
+const indexLabel     = $('index-label');
+
+const loginBtn       = $('login-btn');
+const loginStatus    = $('login-status');
+
+const playlistsCard  = $('playlists-card');
+const playlistList   = $('playlist-list');
+const selectAllRow   = $('select-all-row');
+const selectAllChk   = $('select-all-chk');
+const exportBtn      = $('export-btn');
+
+const matchProgress  = $('match-progress');
+const matchFill      = $('match-fill');
+const matchLabel     = $('match-label');
+
+const results        = $('results');
+const statMatched    = $('stat-matched');
+const statTotal      = $('stat-total');
+const statUnmatched  = $('stat-unmatched');
+const downloadLink   = $('download-link');
+const unmatchedToggle = $('unmatched-toggle');
+const unmatchedList  = $('unmatched-list');
+
+const statusbar      = $('statusbar');
+
+// ── WebSocket ─────────────────────────────────────────────────────────────────
+function connect() {
+  ws = new WebSocket(`ws://${location.host}/ws`);
+
+  ws.onopen = () => setStatus('Connected');
+
+  ws.onmessage = e => {
+    const msg = JSON.parse(e.data);
+    handle(msg);
+  };
+
+  ws.onclose = () => {
+    setStatus('Disconnected — retrying…', true);
+    setTimeout(connect, 2000);
+  };
+}
+
+function send(obj) {
+  if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(obj));
+}
+
+// ── Message handler ───────────────────────────────────────────────────────────
+function handle(msg) {
+  switch (msg.type) {
+
+    case 'init':
+      if (msg.indexed > 0) setIndexDone(msg.indexed);
+      if (msg.username)    setLoggedIn(msg.username);
+      if (msg.playlists?.length) renderPlaylists(msg.playlists);
+      if (msg.last_export) showDownload(msg.last_export);
+      break;
+
+    case 'index_start':
+      indexBtn.disabled = true;
+      indexProgress.classList.remove('hidden');
+      setStatus(`Indexing ${msg.total.toLocaleString()} files…`);
+      break;
+
+    case 'index_progress':
+      const pct = Math.round((msg.current / msg.total) * 100);
+      indexFill.style.width = pct + '%';
+      indexLabel.textContent = `${msg.current.toLocaleString()} / ${msg.total.toLocaleString()} files`;
+      break;
+
+    case 'index_done':
+      setIndexDone(msg.count);
+      break;
+
+    case 'login_opened':
+      loginBtn.disabled = true;
+      loginStatus.textContent = 'Log into Bandcamp in the browser window…';
+      setStatus('Waiting for Bandcamp login…');
+      break;
+
+    case 'logged_in':
+      setLoggedIn(msg.username);
+      send({ action: 'get_playlists' });
+      break;
+
+    case 'playlists':
+      renderPlaylists(msg.items);
+      setStatus(`Found ${msg.items.length} playlists`);
+      break;
+
+    case 'status':
+      setStatus(msg.message);
+      break;
+
+    case 'match_progress':
+      matchProgress.classList.remove('hidden');
+      const mpct = Math.round((msg.current / msg.total) * 100);
+      matchFill.style.width = mpct + '%';
+      matchLabel.textContent =
+        `${msg.playlist} — ${msg.matched}/${msg.current} matched (${msg.current}/${msg.total})`;
+      break;
+
+    case 'export_done':
+      matchProgress.classList.add('hidden');
+      showExportResults(msg);
+      break;
+
+    case 'need_username':
+      const u = prompt("Could not detect your Bandcamp username automatically.\nEnter your Bandcamp username (e.g. cgonz313):");
+      if (u) send({ action: 'set_username', username: u.trim() });
+      break;
+
+    case 'error':
+      setStatus(msg.message, true);
+      break;
+  }
+}
+
+// ── UI helpers ────────────────────────────────────────────────────────────────
+function setStatus(text, isError = false) {
+  statusbar.textContent = text;
+  statusbar.className = isError ? 'error' : '';
+}
+
+function setIndexDone(count) {
+  indexBtn.disabled = false;
+  indexBtn.textContent = 'Re-index';
+  indexProgress.classList.remove('hidden');
+  indexFill.style.width = '100%';
+  indexLabel.textContent = `${count.toLocaleString()} files indexed`;
+  indexStatus.textContent = `${count.toLocaleString()} files`;
+  loginBtn.disabled = false;
+  setStatus('Library indexed — connect to Bandcamp');
+}
+
+function setLoggedIn(username) {
+  loginBtn.disabled = false;
+  loginBtn.textContent = 'Reconnect';
+  loginStatus.textContent = username;
+}
+
+function renderPlaylists(items) {
+  playlistsCard.classList.remove('hidden');
+  playlistList.innerHTML = '';
+
+  items.forEach(pl => {
+    const row = document.createElement('label');
+    row.className = 'playlist-row';
+    row.innerHTML = `
+      <input type="checkbox" value="${pl.url}" data-name="${escHtml(pl.name)}">
+      <span class="playlist-name">${escHtml(pl.name)}</span>
+      <span class="playlist-count">${pl.track_count} tracks</span>
+    `;
+    playlistList.appendChild(row);
+  });
+
+  updateSelectAll();
+  playlistList.querySelectorAll('input').forEach(cb =>
+    cb.addEventListener('change', updateExportBtn)
+  );
+  updateExportBtn();
+}
+
+function updateSelectAll() {
+  selectAllRow.classList.remove('hidden');
+  selectAllChk.addEventListener('change', () => {
+    playlistList.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      cb.checked = selectAllChk.checked;
+    });
+    updateExportBtn();
+  });
+}
+
+function updateExportBtn() {
+  const checked = playlistList.querySelectorAll('input:checked').length;
+  exportBtn.disabled = checked === 0;
+  exportBtn.textContent = checked > 0
+    ? `Export ${checked} playlist${checked > 1 ? 's' : ''}`
+    : 'Export';
+}
+
+function showExportResults(msg) {
+  results.style.display = 'block';
+  statMatched.textContent  = msg.matched;
+  statTotal.textContent    = msg.total;
+  statUnmatched.textContent = msg.unmatched.length;
+  showDownload(msg.filename);
+
+  if (msg.unmatched.length > 0) {
+    unmatchedToggle.classList.remove('hidden');
+    unmatchedList.innerHTML = msg.unmatched.map(escHtml).join('<br>');
+  }
+  setStatus(`Exported → ${msg.filename}`);
+}
+
+function showDownload(filename) {
+  const name = filename.split('/').pop();
+  downloadLink.href = `/download/${encodeURIComponent(filename)}`;
+  downloadLink.download = name;
+  downloadLink.textContent = `Download ${name}`;
+  results.style.display = 'block';
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Button handlers ───────────────────────────────────────────────────────────
+indexBtn.addEventListener('click', () => send({ action: 'index' }));
+
+loginBtn.addEventListener('click', () => send({ action: 'login' }));
+
+exportBtn.addEventListener('click', () => {
+  const selected = [...playlistList.querySelectorAll('input:checked')].map(cb => ({
+    name: cb.dataset.name,
+    url:  cb.value,
+  }));
+  matchProgress.classList.remove('hidden');
+  matchFill.style.width = '0%';
+  results.style.display = 'none';
+  exportBtn.disabled = true;
+  send({ action: 'export', playlists: selected });
+});
+
+unmatchedToggle.addEventListener('click', () => {
+  const visible = unmatchedList.style.display === 'block';
+  unmatchedList.style.display = visible ? 'none' : 'block';
+  unmatchedToggle.textContent = visible
+    ? `Show ${unmatchedList.children.length} unmatched tracks`
+    : 'Hide unmatched';
+});
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+connect();
