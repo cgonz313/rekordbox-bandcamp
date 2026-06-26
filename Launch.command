@@ -36,31 +36,10 @@ fi
 # ── Create .app bundle (once) ─────────────────────────────────────────────────
 APP="$SCRIPT_DIR/Rekordbox-Bandcamp.app"
 if [ ! -d "$APP" ]; then
-    mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+    # osacompile produces a proper native binary — no Rosetta prompt
+    osacompile -o "$APP" -e "do shell script \"open -a Terminal '$SCRIPT_DIR/Launch.command'\""
 
-    cat > "$APP/Contents/Info.plist" << 'PLIST'
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>CFBundleExecutable</key><string>launcher</string>
-  <key>CFBundleIdentifier</key><string>com.bandcamp-rekordbox</string>
-  <key>CFBundleName</key><string>Rekordbox-Bandcamp</string>
-  <key>CFBundleIconFile</key><string>AppIcon</string>
-  <key>CFBundlePackageType</key><string>APPL</string>
-  <key>CFBundleVersion</key><string>1.0</string>
-</dict>
-</plist>
-PLIST
-
-    # Launcher inside the .app just opens Launch.command in Terminal
-    cat > "$APP/Contents/MacOS/launcher" << LAUNCHER
-#!/bin/bash
-open -a Terminal "$SCRIPT_DIR/Launch.command"
-LAUNCHER
-    chmod +x "$APP/Contents/MacOS/launcher"
-
-    # Convert the Bandcamp PNG to .icns for the app icon
+    # Replace the default applet icon with the Bandcamp logo
     PNG="$SCRIPT_DIR/static/images/bc-logo-512.png"
     if [ -f "$PNG" ]; then
         TMP=$(mktemp -d)
@@ -70,11 +49,11 @@ LAUNCHER
             sips -z $size $size "$PNG" --out "$ICONSET/icon_${size}x${size}.png" 2>/dev/null
             sips -z $((size*2)) $((size*2)) "$PNG" --out "$ICONSET/icon_${size}x${size}@2x.png" 2>/dev/null
         done
-        iconutil -c icns "$ICONSET" -o "$APP/Contents/Resources/AppIcon.icns" 2>/dev/null
+        iconutil -c icns "$ICONSET" -o "$APP/Contents/Resources/applet.icns" 2>/dev/null
         rm -rf "$TMP"
     fi
 
-    # Register so Finder shows the icon immediately
+    # Tell Finder to refresh the icon
     touch "$APP"
     /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "$APP" 2>/dev/null
 
