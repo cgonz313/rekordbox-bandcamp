@@ -3,14 +3,16 @@ __pycache__/
 
 # Generated XML exports
 *.xml
+exports/
 
 # Diagnostic debug files
 debug_*.html
 debug_*.json
 debug_*.txt
 
-# Generated cache
+# Generated/local files
 index_cache.json
+config.json
 
 # macOS
 .DS_Store
