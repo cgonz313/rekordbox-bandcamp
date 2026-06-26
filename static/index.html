@@ -32,6 +32,7 @@
       <span class="card-title">1 · Local Library</span>
       <span class="card-status" id="index-status"></span>
     </div>
+    <p class="card-hint">Add the folder(s) where your music files live, then click <strong>Index Library</strong>. The first scan can take a few minutes depending on your library size — subsequent scans are much faster thanks to caching.</p>
     <div id="music-dirs-list"></div>
     <div class="row" style="margin-top:8px">
       <button class="btn-secondary" id="add-dir-btn">+ Add Folder</button>
@@ -49,10 +50,8 @@
       <span class="card-title">2 · Bandcamp</span>
       <span class="card-status" id="login-status"></span>
     </div>
+    <p class="card-hint">Opens a Chromium browser window so you can log into Bandcamp normally. Your credentials are never stored — once you're logged in, come back here and your playlists will load automatically.</p>
     <button class="btn-primary" id="login-btn" disabled>Connect Bandcamp</button>
-    <p style="margin-top:10px;font-size:12px;color:var(--muted)">
-      Opens a browser window — log in normally, then come back here.
-    </p>
   </div>
 
   <!-- Step 3: Playlist selection -->
@@ -60,11 +59,13 @@
     <div class="card-header">
       <span class="card-title">3 · Playlists</span>
     </div>
+    <p class="card-hint">Select the playlists you want to export, choose where to save the XML file, then click <strong>Export</strong>. The XML can be imported directly into rekordbox via <em>Preferences → Advanced → rekordbox xml</em>.</p>
     <label class="select-all-row hidden" id="select-all-row">
       <input type="checkbox" id="select-all-chk"> Select all
     </label>
     <div id="playlist-list"></div>
     <div style="margin-top:14px">
+      <p class="card-hint" style="margin-bottom:8px">Save XML to:</p>
       <div class="dir-row" style="margin-bottom:10px">
         <input type="text" id="export-dir-input" placeholder="~/Desktop" spellcheck="false">
         <button class="btn-secondary" id="export-dir-browse-btn">Browse…</button>
@@ -83,6 +84,7 @@
     <div class="card-header">
       <span class="card-title">Export Result</span>
     </div>
+    <p class="card-hint">Download the XML and import it into rekordbox. Unmatched tracks couldn't be found in your local library — check that the files are indexed and have proper metadata tags.</p>
     <div class="result-stats">
       <div class="stat">
         <div class="stat-value" id="stat-matched">—</div>
