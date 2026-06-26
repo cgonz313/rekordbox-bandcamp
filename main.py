@@ -90,8 +90,8 @@ def index_local_files() -> list[dict]:
     print(f"Indexing {MUSIC_DIR} …")
     files = [
         read_tags(f)
-        for f in sorted(MUSIC_DIR.iterdir())
-        if f.suffix.lower() in AUDIO_EXTS and not f.name.startswith("._")
+        for f in sorted(MUSIC_DIR.rglob("*"))
+        if f.is_file() and f.suffix.lower() in AUDIO_EXTS and not f.name.startswith("._")
     ]
     print(f"  {len(files)} audio files indexed")
     return files
@@ -168,10 +168,26 @@ async def _find_playlist_stubs(page: Page, username: str) -> list[dict]:
     page.on("response", on_response)
     await page.goto(playlists_url)
     await page.wait_for_load_state("networkidle")
-    for _ in range(4):
-        await page.keyboard.press("End")
-        await page.wait_for_timeout(600)
-    await page.wait_for_load_state("networkidle")
+
+    # Phase 1: click "View more results" button until it disappears
+    while True:
+        btn = await page.query_selector("button.load-more-button")
+        if not btn:
+            break
+        await btn.scroll_into_view_if_needed()
+        await btn.click()
+        await page.wait_for_load_state("networkidle")
+        await page.wait_for_timeout(500)
+
+    # Phase 2: infinite scroll until stable
+    prev_count = len(captured)
+    for _ in range(50):
+        await page.mouse.wheel(0, 3000)
+        await page.wait_for_timeout(800)
+        if len(captured) == prev_count:
+            break
+        prev_count = len(captured)
+
     page.remove_listener("response", on_response)
 
     # 1) Parse responses the page already made while loading (paginated — merge all)

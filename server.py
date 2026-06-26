@@ -43,7 +43,12 @@ def load_config() -> dict:
             cfg = json.loads(CONFIG_PATH.read_text())
         except Exception:
             pass
-    cfg.setdefault("music_dir", _DEFAULT_MUSIC_DIR)
+    # Migrate legacy single music_dir → list
+    if "music_dir" in cfg and "music_dirs" not in cfg:
+        cfg["music_dirs"] = [cfg.pop("music_dir")]
+    elif "music_dir" in cfg:
+        cfg.pop("music_dir")
+    cfg.setdefault("music_dirs", [_DEFAULT_MUSIC_DIR])
     cfg.setdefault("export_dir", _DEFAULT_EXPORT_DIR)
     return cfg
 
@@ -120,8 +125,8 @@ class State:
     config: dict = None             # loaded from config.json
 
     @property
-    def music_dir(self) -> Path:
-        return Path(self.config["music_dir"])
+    def music_dirs(self) -> list[Path]:
+        return [Path(d) for d in self.config["music_dirs"]]
 
     @property
     def export_dir(self) -> Path:
@@ -141,8 +146,10 @@ async def ws_endpoint(ws: WebSocket):
         while True:
             msg = await ws.receive_json()
             action = msg.get("action")
-            if action == "set_music_dir":
-                await _handle_set_music_dir(ws, msg.get("path", ""))
+            if action == "add_music_dir":
+                await _handle_add_music_dir(ws, msg.get("path", ""))
+            elif action == "remove_music_dir":
+                await _handle_remove_music_dir(ws, msg.get("path", ""))
             elif action == "set_export_dir":
                 await _handle_set_export_dir(ws, msg.get("path", ""))
             elif action == "index":
@@ -171,7 +178,7 @@ async def _send_initial_state(ws: WebSocket):
         username=state.username,
         playlists=[_stub_summary(p) for p in state.playlists],
         last_export=state.last_export,
-        music_dir=str(state.music_dir),
+        music_dirs=state.config["music_dirs"],
         export_dir=str(state.export_dir),
     )
 
@@ -200,28 +207,39 @@ def _save_cache(files: list[dict]):
         {**f, "path": str(f["path"]), "_key": _cache_key(f["path"])}
         for f in files
     ]
-    CACHE_PATH.write_text(__import__("json").dumps(serialisable))
+    CACHE_PATH.write_text(json.dumps(serialisable))
 
 
 def _load_cache() -> dict[str, dict]:
     if not CACHE_PATH.exists():
         return {}
     try:
-        rows = __import__("json").loads(CACHE_PATH.read_text())
+        rows = json.loads(CACHE_PATH.read_text())
         return {r["path"]: r for r in rows}
     except Exception:
         return {}
 
 
-async def _handle_set_music_dir(ws: WebSocket, path: str):
+async def _handle_add_music_dir(ws: WebSocket, path: str):
     p = Path(path.strip())
     if not p.exists():
         await send(ws, type="error", message=f"Path not found: {p}")
         return
-    state.config["music_dir"] = str(p)
-    save_config(state.config)
-    state.local_files = []  # invalidate index
-    await send(ws, type="music_dir_set", path=str(p), indexed=0)
+    dirs = state.config["music_dirs"]
+    if str(p) not in dirs:
+        dirs.append(str(p))
+        save_config(state.config)
+    state.local_files = []
+    await send(ws, type="music_dirs_updated", dirs=state.config["music_dirs"])
+
+
+async def _handle_remove_music_dir(ws: WebSocket, path: str):
+    dirs = state.config["music_dirs"]
+    if path in dirs:
+        dirs.remove(path)
+        save_config(state.config)
+    state.local_files = []
+    await send(ws, type="music_dirs_updated", dirs=state.config["music_dirs"])
 
 
 async def _handle_set_export_dir(ws: WebSocket, path: str):
@@ -235,14 +253,33 @@ async def _handle_set_export_dir(ws: WebSocket, path: str):
 
 
 async def _handle_index(ws: WebSocket):
-    if not state.music_dir.exists():
-        await send(ws, type="error", message=f"Directory not found: {state.music_dir}")
+    from concurrent.futures import ThreadPoolExecutor
+
+    dirs = state.music_dirs
+    if not dirs:
+        await send(ws, type="error", message="No music directories configured — add at least one folder")
+        return
+    missing = [d for d in dirs if not d.exists()]
+    if missing:
+        await send(ws, type="error", message=f"Directory not found: {missing[0]}")
         return
 
-    files = sorted(
-        f for f in state.music_dir.iterdir()
-        if f.suffix.lower() in AUDIO_EXTS and not f.name.startswith("._")
-    )
+    await send(ws, type="status", message="Scanning directories…")
+
+    # Discover files off the event loop so the WS stays responsive
+    loop = asyncio.get_running_loop()
+    def _find_files():
+        import os
+        found = []
+        for d in dirs:
+            for root, _, filenames in os.walk(d):
+                root_path = Path(root)
+                for name in filenames:
+                    if not name.startswith("._") and Path(name).suffix.lower() in AUDIO_EXTS:
+                        found.append(root_path / name)
+        return sorted(found)
+    files = await loop.run_in_executor(None, _find_files)
+
     total = len(files)
     await send(ws, type="index_start", total=total)
 
@@ -250,12 +287,10 @@ async def _handle_index(ws: WebSocket):
     indexed = []
     pending = []
 
-    # Separate cached hits from files that need reading
     for f in files:
         cached = cache.get(str(f))
         if cached and cached.get("_key") == _cache_key(f):
-            entry = {**cached, "path": f}
-            indexed.append(entry)
+            indexed.append({**cached, "path": f})
         else:
             pending.append(f)
 
@@ -263,23 +298,21 @@ async def _handle_index(ws: WebSocket):
                current=len(indexed), total=total,
                message=f"{len(indexed)} from cache, reading {len(pending)} new/changed…")
 
-    # Read uncached files concurrently
     if pending:
-        loop = asyncio.get_event_loop()
-        executor = __import__("concurrent.futures", fromlist=["ThreadPoolExecutor"]).ThreadPoolExecutor(max_workers=WORKERS)
+        executor = ThreadPoolExecutor(max_workers=WORKERS)
         done = 0
 
         async def read_one(f: Path) -> dict:
             return await loop.run_in_executor(executor, read_tags, f)
 
-        tasks = [asyncio.ensure_future(read_one(f)) for f in pending]
+        tasks = [asyncio.create_task(read_one(f)) for f in pending]
         for coro in asyncio.as_completed(tasks):
             entry = await coro
             indexed.append(entry)
             done += 1
             if done % 200 == 0 or done == len(pending):
                 await send(ws, type="index_progress",
-                           current=len(cache) + done, total=total)
+                           current=len(indexed), total=total)
 
         executor.shutdown(wait=False)
 

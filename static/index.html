@@ -21,13 +21,10 @@
       <span class="card-title">1 · Local Library</span>
       <span class="card-status" id="index-status"></span>
     </div>
-    <div class="dir-row">
-      <input type="text" id="music-dir-input" placeholder="~/Music" spellcheck="false">
-      <button class="btn-secondary" id="dir-browse-btn">Browse…</button>
-      <button class="btn-secondary" id="dir-save-btn">Set</button>
-    </div>
-    <div class="row" style="margin-top:10px">
-      <button class="btn-primary" id="index-btn">Index Library</button>
+    <div id="music-dirs-list"></div>
+    <div class="row" style="margin-top:8px">
+      <button class="btn-secondary" id="add-dir-btn">+ Add Folder</button>
+      <button class="btn-primary" id="index-btn" style="margin-left:auto">Index Library</button>
     </div>
     <div class="progress-wrap hidden" id="index-progress">
       <div class="progress-label" id="index-label"></div>
