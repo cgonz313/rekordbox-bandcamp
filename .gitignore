@@ -13,6 +13,9 @@ debug_*.txt
 # Generated/local files
 index_cache.json
 config.json
+.venv/
+Rekordbox-Bandcamp.app/
+static/images/app.ico
 
 # macOS
 .DS_Store

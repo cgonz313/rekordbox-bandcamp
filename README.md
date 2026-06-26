@@ -14,26 +14,18 @@ Converts your private Bandcamp playlists into a Rekordbox XML file, matched agai
 
 - macOS or Windows
 - Local music files (AIFF, MP3, WAV, M4A)
-- Bandcamp account with purchased tracks
-
----
-
-## Setup
-
-**First time only** — double-click the setup script for your platform:
-
-- **macOS**: double-click `setup.command` (or right-click → Open if macOS blocks it)
-- **Windows**: double-click `setup.bat`
-
-That's it. The script installs everything automatically — Python, all dependencies, and the Chromium browser used for Bandcamp login. No prior installation required.
+- Bandcamp account
 
 ---
 
 ## Usage
 
-### Web interface (recommended)
+Double-click **`Launch.command`** (macOS) or **`Launch.bat`** (Windows).
 
-**Double-click `start.command`** (macOS) or **`start.bat`** (Windows) — the server starts and your browser opens automatically.
+- **First time**: automatically installs everything (Python, dependencies, Chromium browser) and creates a `Rekordbox-Bandcamp.app` you can drag to your Dock or Applications folder (Mac) / a shortcut on your Desktop (Windows).
+- **Every time after**: opens the app instantly.
+
+No prior installation required — Python is managed automatically.
 
 **Steps in the UI:**
 1. **Set your music folder** — type the path or click Browse… to pick it
@@ -75,16 +67,14 @@ Re-click "Connect Bandcamp". You have 3 minutes to log in before it times out.
 
 ```
 rekordbox-bandcamp/
-├── setup.command      # One-time setup (macOS)
-├── setup.bat          # One-time setup (Windows)
-├── start.command      # Launch app (macOS)
-├── start.bat          # Launch app (Windows)
+├── Launch.command     # Mac launcher (double-click)
+├── Launch.bat         # Windows launcher (double-click)
 ├── server.py          # Web server (FastAPI + WebSocket)
-├── main.py            # CLI version + shared scraping/matching logic
+├── main.py            # Scraping + matching logic
 ├── static/
 │   ├── index.html     # Web UI
 │   ├── style.css      # Styles
 │   └── app.js         # Client-side logic
-├── pyproject.toml     # Dependencies (used by uv)
+├── pyproject.toml     # Dependencies
 └── requirements.txt   # Legacy fallback
 ```
